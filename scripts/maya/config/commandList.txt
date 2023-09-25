@@ -1,0 +1,11 @@
+<root> 
+  <label>通用命令</label>  
+  <command>删除多余shape Ju_removeShape com/common/Ju_removeShape.mel</command>  
+  <command>所有模型软边 Ju_softEdges com/common/Ju_softEdges.mel</command>  
+  <command>删除所有模型历史 Ju_getHistory com/common/Ju_getHistory.mel</command>  
+  <command>删除所有表达式 Ju_getExp com/common/Ju_getExp.mel</command>  
+  <command>清理无用节点 Ju_getJunk com/common/Ju_getJunk.mel</command>  
+  <command>居中轴心 Ju_getPivet com/common/Ju_getPivet.mel</command>  
+
+
+</root>

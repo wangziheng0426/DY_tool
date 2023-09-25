@@ -1,0 +1,32 @@
+/////////////////////////////////////////////////////////////
+///\file J_copySkinWeight.mel
+///\brief 拷贝模型权重
+///
+///\author 桔
+///\version 1.0
+///\date  18:45 2019/11/1
+///History:  
+///
+///////////////////////////////////////////////////////////////
+
+///拷贝模型权重
+global proc J_copySkinWeight()
+{
+    
+    string $sel[]=`ls  -sl`;
+    if (size($sel)>0)
+    {
+        string $his[]=`listHistory $sel[0]`;
+        string $jos[]=`ls -type joint $his`;
+        if (size($jos)>0)
+        {
+            select $jos;
+        
+            select -tgl $sel[1];
+            SmoothBindSkin;
+            select -cl;
+            select $sel;
+            CopySkinWeights;
+            }
+    }
+}

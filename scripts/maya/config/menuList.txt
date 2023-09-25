@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root> 
+  <MainMenu> 通用工具 usually </MainMenu>  
+  <SubMenu> 批量改名 J_rename_win common/J_rename_win.mel </SubMenu>  
+  <SubMenu> 检查重名工具 J_moreThanOneObj common/J_moreThanOneObj.mel </SubMenu>  
+  <SubMenu> 批量传预设工具 J_attrTransfor common/J_attrTransfor.mel </SubMenu>  
+  
+  
+  <MainMenu> 模型工具 model </MainMenu>  
+  <SubMenu> 模型整理 J_modelClearMC model/J_modelClearMC.mel </SubMenu>  
+
+    
+  <MainMenu> 动画工具 anim </MainMenu>  
+  <SubMenu> 拍平工具 J_playBlastTool animation/J_playBlastTool.mel </SubMenu>
+  <SubMenu> 批量导动画 J_animationExporter animation/J_animationExporter.mel </SubMenu>  
+
+</root>
