@@ -72,7 +72,7 @@ def J_exportAnimationFromRefNode(refNode,outPath='',exportFacial=False,jointOnly
                         newRoot.append(newTempItem)
 
         if len(newRoot)<1:
-            print "找不到骨骼"
+            print ("找不到骨骼")
             return 
         #引擎是用的片段可以仅导出动画
         if jointOnly:
@@ -123,6 +123,7 @@ def J_exportAnimationFromRefNode(refNode,outPath='',exportFacial=False,jointOnly
                             mdf.doIt()
             if faceModels:
                 faceModelsHis= cmds.listHistory(faceModels)
+                #删除蒙皮
                 cmds.delete(cmds.ls(faceModelsHis,type='skinCluster'))
                 cmds.select(faceModels)
                 blendNodes=cmds.ls(cmds.listHistory(faceModels),type='blendShape')
@@ -171,33 +172,49 @@ def J_getRootJointFromNodes(allNodes):
     return list(set(res))
 
 def J_exportToFbxFile(outPath,takeName='take001',QuaternionMode="resample",startFrame='',endFrame=""):
-        if(startFrame==""):
-            startFrame=cmds.playbackOptions( query=1, minTime=1)
-        if(endFrame==""):
-            endFrame=cmds.playbackOptions( query=1, maxTime=1)
-        #导出动画
-        mel.eval('FBXResetExport ;')
-        mel.eval('FBXExportInAscii  -v true')
+    if(startFrame==""):
+        startFrame=cmds.playbackOptions( query=1, minTime=1)
+    if(endFrame==""):
+        endFrame=cmds.playbackOptions( query=1, maxTime=1)
+    #导出动画
+    mel.eval('FBXResetExport ;')
+    mel.eval('FBXExportInAscii  -v true')
 
-        mel.eval('FBXExportBakeComplexAnimation -v 1; ')   
-        mel.eval('FBXExportShapes -v true;')
+    mel.eval('FBXExportBakeComplexAnimation -v 1; ')   
+    mel.eval('FBXExportShapes -v true;')
 
-        mel.eval('FBXExportBakeComplexStart -v '+ str(startFrame))
-        mel.eval('FBXExportBakeComplexEnd -v ' +str(endFrame))
+    mel.eval('FBXExportBakeComplexStart -v '+ str(startFrame))
+    mel.eval('FBXExportBakeComplexEnd -v ' +str(endFrame))
 
-        mel.eval('FBXExportBakeResampleAnimation -v 1;')
-        mel.eval('FBXExportInAscii -v 1;')
+    mel.eval('FBXExportBakeResampleAnimation -v 1;')
+    mel.eval('FBXExportInAscii -v 1;')
 
-        mel.eval('FBXExportIncludeChildren -v 1;')
-        mel.eval('FBXExportSplitAnimationIntoTakes -clear; ')  
+    mel.eval('FBXExportIncludeChildren -v 1;')
+    mel.eval('FBXExportSplitAnimationIntoTakes -clear; ')  
 
-        mel.eval('FBXExportDeleteOriginalTakeOnSplitAnimation -v true;')
-        mel.eval('FBXExportSplitAnimationIntoTakes -v '+takeName+' '+str(startFrame) +' ' +str(endFrame))
-        #曲线模式
-        mel.eval('FBXExportQuaternion -v '+QuaternionMode)
-        #导出
-        mel.eval('FBXExport -f \"'+outPath+'\" -s ')
-        #J_exportToFbxFile(outPath,takeName=refNode,QuaternionMode="resample") 
-        # QuaternionMode=cmds.optionMenu('J_animationExporter_optionMenu01',q=1,v=1)
+    mel.eval('FBXExportDeleteOriginalTakeOnSplitAnimation -v true;')
+    mel.eval('FBXExportSplitAnimationIntoTakes -v '+takeName+' '+str(startFrame) +' ' +str(endFrame))
+    #曲线模式
+    mel.eval('FBXExportQuaternion -v '+QuaternionMode)
+    #导出
+    mel.eval('FBXExport -f \"'+outPath+'\" -s ')
+    #J_exportToFbxFile(outPath,takeName=refNode,QuaternionMode="resample") 
+    # QuaternionMode=cmds.optionMenu('J_animationExporter_optionMenu01',q=1,v=1)
+
+def J_exportAnimationToAbc(refNode):
+    refFile=cmds.referenceQuery(refNode,filename=1 )
+    finalOutPath=JpyModules.public.J_getMayaFileFolder()+"/"+JpyModules.public.J_getMayaFileNameWithOutExtension()
+    chName=JpyModules.animation.J_animationExporter.J_analysisChrName(refFile)
+    fileFullName=cmds.file(query=True,sceneName=True,shortName=True)[:-3]
+    cacheNameTemp='XWDZ_'
+    jishu=re.search('/s[0-9]{3}/',fileFullName)
+    if jishu!=None:
+        cacheNameTemp+= jishu.group().replace('/',"")
+    cacheNameTemp+="_chr_"+chName+"@"+refNode+"_ani"
+    templist=[]
+    for itema in cmds.referenceQuery(refNode,nodes=1):
+        if itema.endswith('srfNUL'):
+            templist.append(itema)
+    JpyModules.public.J_exportAbc(0,nodesToExport=templist,cacheFileName=cacheNameTemp,j_abcCachePath=finalOutPath)
 if __name__=='__main__':
     J_exportAnimationFromRefNode('RG_Nakayi_endRN','c:/temp/aa.fbx')

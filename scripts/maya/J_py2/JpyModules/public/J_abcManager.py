@@ -12,7 +12,7 @@ import os,sys,json
 import maya.api.OpenMaya as om2
 #导出abc缓存,模式1普通模式,直接导出所选模型为一个整体abc文件
 #模式2单独导出每个模型文件
-def J_exportAbc(mode=1,nodesToExport=[],exportAttr=[],importRef=False):
+def J_exportAbc(mode=1,nodesToExport=[],exportAttr=[],cacheFileName='',j_abcCachePath=''):
     attrList=['SGInfo','MatInfo','NodeName','NodeVisibility']
     if len(exportAttr)<1:
         exportAttr=attrList
@@ -27,9 +27,10 @@ def J_exportAbc(mode=1,nodesToExport=[],exportAttr=[],importRef=False):
     timeLineStart=cmds.playbackOptions(query=True,minTime=True)
     timeLineEnd=cmds.playbackOptions(query=True,maxTime=True)
     filePath=JpyModules.public.J_getMayaFileFolder()
-    cacheFileName=JpyModules.public.J_getMayaFileNameWithOutExtension()
-
-    j_abcCachePath=filePath+"/"+cacheFileName+'_cache/abc/'
+    if cacheFileName=='':
+        cacheFileName=JpyModules.public.J_getMayaFileNameWithOutExtension()
+    if j_abcCachePath=='':
+        j_abcCachePath=filePath+"/"+cacheFileName+'_cache/abc'
     if not os.path.exists(j_abcCachePath):
         os.makedirs(j_abcCachePath)
     #输出abc材质log，并导出材质球
@@ -58,8 +59,8 @@ def J_exportAbc(mode=1,nodesToExport=[],exportAttr=[],importRef=False):
         exportString+=' -uvWrite -writeFaceSets -worldSpace -dataFormat ogawa '    
         for nitem in nodesToExport:
             exportString+=' -root '+nitem +" "
-        exportString+=' -file '+j_abcCachePath+cacheFileName+'.abc"'
-        outFile=open(j_abcCachePath+'abcLog.jcl','w')
+        exportString+=' -file '+j_abcCachePath+'/'+cacheFileName+'.abc"'
+        outFile=open(j_abcCachePath+'/abcLog.jcl','w')
         outFile.write(json.dumps(logStr,encoding='utf-8',ensure_ascii=False)) 
         outFile.close()
         mel.eval(exportString)
@@ -83,10 +84,10 @@ def J_exportAbc(mode=1,nodesToExport=[],exportAttr=[],importRef=False):
             #导出材质球，添加信息
             for meshItem in J_getAllMeshs([item]):
                 logStr[count]['meshs'][meshItem]=J_exportMaterail(j_abcCachePath,meshItem,exportAttr)   
-            exportStringa+=' -file '+j_abcCachePath+cacheFileName+'_'+itemName+'.abc"'
+            exportStringa+=' -file '+j_abcCachePath+'/'+cacheFileName+'_'+itemName+'.abc"'
             mel.eval(exportStringa)
             count=count+1
-        outFile=open(j_abcCachePath+'abcLog.jcl','w')
+        outFile=open(j_abcCachePath+'/abcLog.jcl','w')
         outFile.write(json.dumps(logStr,encoding='utf-8',ensure_ascii=False)) 
         outFile.close()
     cmds.select(nodesToExport)
@@ -137,7 +138,7 @@ def J_exportMaterail(exportPath,meshTrNode,attrList=['SGInfo','MatInfo','NodeNam
             cmds.select(mat)
             cmds.file(outMatFIlePath,op='v=0;',force=1,typ="mayaAscii", es=True,constructionHistory=1)
             matFileList.append(mat[0].replace("|",'_').replace(":","@")+'_mat.ma')
-        #未模型添加属性        
+        #模型添加属性        
         for attrItem in attrList:
             if not cmds.attributeQuery(attrItem,node=meshTrNode,ex=1):
                 cmds.addAttr(meshTrNode,longName=attrItem,dt='string')

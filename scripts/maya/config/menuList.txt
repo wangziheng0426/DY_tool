@@ -12,6 +12,6 @@
     
   <MainMenu> 动画工具 anim </MainMenu>  
   <SubMenu> 拍平工具 J_playBlastTool animation/J_playBlastTool.mel </SubMenu>
-  <SubMenu> 批量导动画 J_animationExporter animation/J_animationExporter.mel </SubMenu>  
+  <SubMenu> 动画导出 J_animationExporter animation/J_animationExporter.mel </SubMenu>  
 
 </root>
