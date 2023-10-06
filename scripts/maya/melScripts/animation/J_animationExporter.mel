@@ -12,33 +12,41 @@ global proc J_animationExporter()//主窗口
 {
     if (`window -ex J_animationExporterWin`)
         deleteUI -window J_animationExporterWin;
-    window -w 300 -h 360 -title "动画导出" J_animationExporterWin;
+    window -w 300 -h 380 -title "动画导出" J_animationExporterWin;
     //文件导出设置
     string $geoSetting[]={"SmoothingGroup","SmoothMesh","SelectionSets","Triangulate",
      "IncludeChildren","InputConnections","Skin","BlendShape" };
     string $geoSettingCheckBox[];
 
     tabLayout J_animationExporterTab;
-        formLayout  -numberOfDivisions 100  J_animationExporter_FromLayout0;
-            frameLayout -cll 1 -cl 0 -l "模型选项"  J_animationExporter_frameLayout0;
-                string $formLayout_Temp0=`formLayout -numberOfDivisions 100 `;
-                    for ($iItem=0;$iItem<size($geoSetting);$iItem++)
-                    {
-                        $geoSettingCheckBox[$iItem]=`checkBox -label  $geoSetting[$iItem] `;
-                        formLayout -e 
-                        -ap $geoSettingCheckBox[$iItem] left 0 (1+50*($iItem%2))
-                        -ap $geoSettingCheckBox[$iItem] right 0 (49+50*($iItem%2))
-                        -af $geoSettingCheckBox[$iItem] top (15*floor($iItem/2)) $formLayout_Temp0;
-                    }
-                setParent ..;    
-            setParent ..;
-            frameLayout -cll 1 -cl 0 -l "文件配置"  J_animationExporter_frameLayout1;
-                button;
-            setParent ..;
-        setParent ..;
+        // formLayout  -numberOfDivisions 100  J_animationExporter_FromLayout0;
+        //     frameLayout -cll 1 -cl 0 -l "模型选项"  J_animationExporter_frameLayout0;
+        //         string $formLayout_Temp0=`formLayout -numberOfDivisions 100 `;
+        //             for ($iItem=0;$iItem<size($geoSetting);$iItem++)
+        //             {
+        //                 $geoSettingCheckBox[$iItem]=`checkBox -label  $geoSetting[$iItem] `;
+        //                 formLayout -e 
+        //                 -ap $geoSettingCheckBox[$iItem] left 0 (1+50*($iItem%2))
+        //                 -ap $geoSettingCheckBox[$iItem] right 0 (49+50*($iItem%2))
+        //                 -af $geoSettingCheckBox[$iItem] top (15*floor($iItem/2)) $formLayout_Temp0;
+        //             }
+        //         setParent ..;    
+        //     setParent ..;
+        //     frameLayout -cll 1 -cl 0 -l "文件配置"  J_animationExporter_frameLayout1;
+        //         button;
+        //     setParent ..;
+        // setParent ..;
         formLayout  -numberOfDivisions 100  J_animationExporter_FromLayout1;
             textScrollList  -sc "J_animationExporterSelitem"  -allowMultiSelection 1  J_allCameraNode;
             textScrollList  -sc "" -allowMultiSelection 1 J_allRefNode;
+            checkBox -label "曲线平滑" -v 1 J_animationExporter_chbox01;
+            checkBox -label "曲线打平"  J_animationExporter_chbox02;
+            checkBox -label "根骨归零"  J_animationExporter_chbox03;
+            optionMenu -label "差值模式" J_animationExporter_optionMenu01;
+            menuItem  -label "resample";
+            menuItem  -label "euler";
+            menuItem  -label "quaternion";
+
             button -l "导出相机" -c  "J_animationExporterExportCamBut" J_expCam;
             button -l "导出动画" -c  "J_animationExporterExportAniBut" J_expAni;
             textField    J_tex;
@@ -48,37 +56,51 @@ global proc J_animationExporter()//主窗口
 
         setParent ..;
     tabLayout -edit
-         -tabLabel "J_animationExporter_FromLayout0" "模型资产" -tabLabel "J_animationExporter_FromLayout1" "动画导出" J_animationExporterTab;
+        //-tabLabel "J_animationExporter_FromLayout0" "模型资产" -tabLabel "J_animationExporter_FromLayout1" "动画导出" J_animationExporterTab;
+        -tabLabel "J_animationExporter_FromLayout1" "动画导出" J_animationExporterTab;
+    // formLayout -e 
+    //     -ap J_animationExporter_frameLayout0 left 0 1
+    //     -ap J_animationExporter_frameLayout0 right 0 99
+    //     -af J_animationExporter_frameLayout0 top 0
         
-    formLayout -e 
-        -ap J_animationExporter_frameLayout0 left 0 1
-        -ap J_animationExporter_frameLayout0 right 0 99
-        -af J_animationExporter_frameLayout0 top 0
-        
-        -ap J_animationExporter_frameLayout1 left 0 1
-        -ap J_animationExporter_frameLayout1 right 0 99
-        -ac J_animationExporter_frameLayout1 top 1 J_animationExporter_frameLayout0
+    //     -ap J_animationExporter_frameLayout1 left 0 1
+    //     -ap J_animationExporter_frameLayout1 right 0 99
+    //     -ac J_animationExporter_frameLayout1 top 1 J_animationExporter_frameLayout0
 
-    J_animationExporter_FromLayout0;
+    // J_animationExporter_FromLayout0;
 
     formLayout -e 
         -ap J_allRefNode left 1 1
         -ap J_allRefNode right 1 99
         -af J_allRefNode top 0
-        -ap J_allRefNode bottom 0 50
+        -ap J_allRefNode bottom 0 40
         
         -ap J_allCameraNode left 1 1
         -ap J_allCameraNode right 1 99
         -ac J_allCameraNode top  1 J_allRefNode
-        -af J_allCameraNode bottom 80
+        -af J_allCameraNode bottom 120
         
+        -ap J_animationExporter_chbox01 left 0 1
+        -ap J_animationExporter_chbox01 right 0 32
+        -ac J_animationExporter_chbox01 top  2 J_allCameraNode
+        -ap J_animationExporter_chbox02 left 0 33
+        -ap J_animationExporter_chbox02 right 0 65
+        -ac J_animationExporter_chbox02 top  2 J_allCameraNode
+        -ap J_animationExporter_chbox03 left 0 66
+        -ap J_animationExporter_chbox03 right 0 99
+        -ac J_animationExporter_chbox03 top  2 J_allCameraNode
+
+        -ap J_animationExporter_optionMenu01 left 0 1
+        -ap J_animationExporter_optionMenu01 right 0 99
+        -ac J_animationExporter_optionMenu01 top  2 J_animationExporter_chbox01
+
         -ap J_expCam left 0 1
         -ap J_expCam right 0 49
-        -ac J_expCam top  2 J_allCameraNode
+        -ac J_expCam top  2 J_animationExporter_optionMenu01
 
         -ap J_expAni left 0 50
         -ap J_expAni right 0 99
-        -ac J_expAni top  2 J_allCameraNode
+        -ac J_expAni top  2 J_animationExporter_optionMenu01
         
         -ap J_tex left 0 1
         -ap J_tex right 0 99
@@ -124,7 +146,6 @@ global proc J_animationExporterInit()
     for ($item0 in $allRefFile)
     {   
         string $refNode=`referenceQuery -referenceNode $item0`;
-
         textScrollList  -e -a $refNode  J_allRefNode;
     }
 }
@@ -132,7 +153,7 @@ global proc J_animationExporterInit()
 
 global proc J_animationExporterExportCam(string $camName,string $outPath)
 {
-    $newCamNode="|Rootmotion|TimelineCamera";
+    $newCamNode="|"+$camName+"|"+$camName+"_";
     int $startFrame=`playbackOptions -query -minTime`;
     int $endFrame=`playbackOptions -query -maxTime`+1;
 
@@ -191,7 +212,6 @@ global proc J_animationExporterExportCam(string $camName,string $outPath)
     FBXExportSplitAnimationIntoTakes -v "cam" $startFrame $endFrame;
     FBXExport -f $outPath -s ;
 }
-//J_animationExporterExportCam("pSphere1","Z:/THD/file.fbx")
 
 //查文件路径,未保存,则以c:/temp为准
 global proc string J_animationExporterGetFilePath()
@@ -375,9 +395,7 @@ global proc J_animationExporterExportAniBut()
     {
         for ($item in $selRef)
         {
-            string $refFilename=`referenceQuery -filename $item`;
-            string $outPath=J_animationExporterGetFilePath()+
-                python("JpyModules.animation.J_animationExporter.J_getFileName()") +"_"+$item;
+                python("JpyModules.animation.J_animationExporter.J_exportAnimationFromRefNode("+$item+","+$outPath+")") ;
             J_animationExporterExportAni($item,$outPath);
             file -f  -prompt false   -open $mayafile;
         }
@@ -473,42 +491,7 @@ global proc  J_animationExporterRemoveAllNameSpace()
         J_animationExporterRemoveAllNameSpace();
     }
 }
-global proc string[] J_animationExporterGetRootJoint(string $refNode)
-{
-    string $rootJoint="";
-    string $allNodes[]= `referenceQuery -nodes  $refNode `;
-    if (size($allNodes)<1) return {""};
-    string $allSkinClustersFromRef[]=`ls -type skinCluster  -allPaths $allNodes`;
-    if (size($allSkinClustersFromRef)<1) return {""};
-    string $skinClustersHis[]=`listHistory $allSkinClustersFromRef`;
-    if (size($skinClustersHis)<1) return {""};
-    string $allJointFromSkinClusters[]=`ls -long -type joint $skinClustersHis`;
-    if (size($allJointFromSkinClusters)<1) return {""};
-    string $refNamespace=`referenceQuery -namespace $refNode`;
-    $refNamespace=`substring $refNamespace 2 (size($refNamespace))`+":";
-    string $res[];
-    int $jointCount=0;
-    if (size($allJointFromSkinClusters)>0)
-    {   
-        for ($itemSC in $allJointFromSkinClusters)
-        {
-            $rootJoint=$itemSC ;
-            string $par[]=`listRelatives -p -f $itemSC`;
-            if (size($par)>0)
-            {
-                while (`objectType $par[0]`!="transform")
-                {
-                    $rootJoint=$par[0];
-                    $par=`listRelatives -p -f $par[0]`;
-                }
-            }
-            $res[$jointCount]=$rootJoint;
-            $jointCount++;
-        }
-    }
-    //$rootJoint=python("\""+$rootJoint+"\".replace("+"\""+$refNamespace+"\",\"\")");
-    return stringArrayRemoveDuplicates($res);
-}
 
 
-//J_animationExporter;
+
+J_animationExporter;

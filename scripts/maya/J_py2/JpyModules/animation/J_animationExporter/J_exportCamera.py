@@ -11,7 +11,7 @@ import os
 import maya.OpenMaya as om
 import maya.cmds as cmds
 #edo_renameDefualtRenderLayerName()
-def J_exportCamera(outType='fbx'):
+def J_exportCamera():
     selectPath=cmds.internalVar(userWorkspaceDir=True)
     if cmds.optionVar( query= "RecentFilesList")!=0:
         selectPath='/'.join(cmds.optionVar( query= "RecentFilesList")[0].split('/')[0:-1])
@@ -20,7 +20,7 @@ def J_exportCamera(outType='fbx'):
     res=''
     message=''
     bakeFrame=False
-    if cmds.confirmDialog( title='到摄像机要烘焙关键帧么？', message='到摄像机要烘焙关键帧么？', button=['要','雅蠛蝶'], dismissString='No' ) ==u'\u8981':
+    if cmds.confirmDialog( title='导摄像机要烘焙关键帧么？', message='导摄像机要烘焙关键帧么？', button=['要','雅蠛蝶'], dismissString='No' ) ==u'\u8981':
         bakeFrame=True
         
     count = 0
@@ -43,11 +43,11 @@ def J_exportCamera(outType='fbx'):
             if i.lower().endswith(".mb") or i.lower().endswith(".ma"):    
                 mayaFile=(item[0].replace('\\','/')+'/'+i)
                 cmds.file(mayaFile,open=True , force=True,ignoreVersion=True,executeScriptNodes=True,o=1, prompt=0)    
-                J_excuteExport(mayaFile,outType,bakeFrame)
+                J_excuteExport(mayaFile,bakeFrame)
 
     cmds.progressWindow(endProgress=1)   
     cmds.confirmDialog( title='执行结果', message="导出完成", button=['好'], dismissString='No' )
-def J_excuteExport(fileName,outType,bakeFrame):
+def J_excuteExport(fileName,bakeFrame):
     cmds.loadPlugin ( "fbxmaya")
     allCam=cmds.ls(type='camera')
     allCam.remove(u'frontShape')
@@ -63,14 +63,5 @@ def J_excuteExport(fileName,outType,bakeFrame):
             cmds.bakeSimulation( camTransform[0], t=(start,end), sb=1, at=["rx","ry","rz","tx","ty","tz"], hi="below" )
         cmds.select(cam)
         cmds.file((fileName[0:-3]+"_"+cam.replace(':','_')+'.fbx'), force=True ,options= "fbx" ,type ="FBX export" ,es=True )
-def J_excuteSelectionToObj():
-    cmds.loadPlugin ( "objExport")
-    allSel=cmds.ls(sl=True)
-    filePath=cmds.file(query=True,sceneName=True).replace(cmds.file(query=True,sceneName=True,shortName=True),'')
-    for item in allSel:
-        cmds.select(item)
-        cmds.file((filePath+item+'.obj'), force=True ,
-        options= "groups=1;ptgroups=1;materials=1;smoothing=1;normals=1" ,type ='OBJexport' ,es=True )
-
 if __name__ == '__main__':
     J_exportCamera()

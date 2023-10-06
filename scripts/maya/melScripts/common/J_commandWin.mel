@@ -33,7 +33,7 @@ int $loopRun=1;
     /////////////////////////////////////////////////////////////////////主窗口
 if (`window -ex J_MadOnionWin`)
     deleteUI -window J_MadOnionWin;
-    window -w 245 -h 200 -title "J_MadOnion" J_MadOnionWin;
+    window -w 245 -h 200 -title "DY_Tools" J_MadOnionWin;
     frameLayout -w 240-cll 1 -cl 0  -l "工具集" xxForm;
     scrollLayout scrollLayout;
     formLayout  -numberOfDivisions 100  JuForm;
