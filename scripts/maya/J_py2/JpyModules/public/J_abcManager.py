@@ -91,7 +91,7 @@ def J_exportAbc(mode=1,nodesToExport=[],exportAttr=[],cacheFileName='',j_abcCach
         outFile.write(json.dumps(logStr,encoding='utf-8',ensure_ascii=False)) 
         outFile.close()
     cmds.select(nodesToExport)
-    os.startfile(j_abcCachePath)    
+    #os.startfile(j_abcCachePath)    
 #为模型添加自定义属性，并将材质信息写入，最后导出材质球，返回导出文件
 def J_exportMaterail(exportPath,meshTrNode,attrList=['SGInfo','MatInfo','NodeName','NodeVisibility']):
     cmds.lockNode("initialShadingGroup", l=0, lu=0)
