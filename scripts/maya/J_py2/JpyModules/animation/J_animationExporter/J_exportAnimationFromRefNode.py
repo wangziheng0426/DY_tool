@@ -203,14 +203,14 @@ def J_exportToFbxFile(outPath,takeName='take001',QuaternionMode="resample",start
 
 def J_exportAnimationToAbc(refNode):
     refFile=cmds.referenceQuery(refNode,filename=1 )
-    finalOutPath=JpyModules.public.J_getMayaFileFolder()+"/"+JpyModules.public.J_getMayaFileNameWithOutExtension()
-    chName=JpyModules.animation.J_animationExporter.J_analysisChrName(refFile)
+    finalOutPath=JpyModules.public.J_getMayaFileFolder()+"/"+JpyModules.public.J_getMayaFileNameWithOutExtension()+"_cache"
+    chName=JpyModules.animation.J_animationExporter.J_analysisAssetsName(refFile)
     fileFullName=cmds.file(query=True,sceneName=True,shortName=True)[:-3]
     cacheNameTemp='XWDZ_'
     jishu=re.search('/s[0-9]{3}/',fileFullName)
     if jishu!=None:
         cacheNameTemp+= jishu.group().replace('/',"")
-    cacheNameTemp+="_chr_"+chName+"@"+refNode+"_ani"
+    cacheNameTemp+=chName+"@"+refNode+"_ani"
     templist=[]
     for itema in cmds.referenceQuery(refNode,nodes=1):
         if itema.endswith('srfNUL'):

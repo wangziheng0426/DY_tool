@@ -202,6 +202,7 @@ global proc J_animationExporterExportAniBut()
     {  
         python("JpyModules.animation.J_animationExporter.J_exportAnimationToAbc('"+$item +"')");
     }
+    J_animationExporterExportCamBut();
     string $outPath=J_animationExporterGetFilePath()+"/"+J_animationExporterGetFileNameWithOutExtension()+"/";
     //导出后打开文件夹
     string $cmd="os.startfile(os.path.dirname(\""+$outPath+"\"))";
@@ -324,4 +325,4 @@ global proc J_animationExporterSelitem()
     string $allListCam[]=`textScrollList  -q -si  J_allCameraNode`;
     select $allListCam;
 }
-J_animationExporter;
+//J_animationExporter;

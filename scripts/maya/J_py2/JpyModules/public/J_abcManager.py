@@ -195,8 +195,9 @@ def J_importAbc():
         selectedNodeParent='|'.join(selectedNodeParent)
 
         #第一层字典以序号作为key，每个字典对应一套abc文件和模型材质信息，关键字："abcFile"
-        abcFile=os.path.dirname(jclFile)+"/"+v0["abcFile"]
+        abcFile=v0["abcFile"]
         groupNode=cmds.createNode('transform',name=('J_abc_'+str(k0)+"_"+abcFile[:-4].split("@")[len(abcFile.split("@"))-1]))
+        abcFile=os.path.dirname(jclFile)+"/"+v0["abcFile"]
         if os.path.exists(abcFile):
             mel.eval('AbcImport -mode import -reparent '+groupNode+' \"'+abcFile +'\";')
         #第二层字典关键字mesh包含模型名称和材质名称，导入材质球  

@@ -48,13 +48,15 @@ def J_analysisCamName():
         return ''
     if not os.path.exists(filePath):os.makedirs(filePath)
     return filePath+'/'+(res+"_cam.fbx").replace('/','')
-def J_analysisChrName(fileFullName):    
+#分析资产类型和名称，返回元组（类型，名称）
+def J_analysisAssetsName(fileFullName):    
     #分析角色名，如果失败，则返回文件名
-    chName=re.search('/chr/\w*/rig/',fileFullName)
+    chName=re.search('[a-zA-Z]*/\w*/rig/',fileFullName)
     if chName!=None:
-        return chName.group().replace('/chr/','').replace('/rig/','')
+        return chName.group().replace('/rig/','').replace('/','_')
     else:
         return os.path.splitext(os.path.basename(fileFullName))[0]
+print J_analysisAssetsName('Z:/XWDZ/assets/prp/tongHu/rig/publish/tongHu_rig.mb')
 
 if __name__=='__main__':
     print J_analysisCamName()
