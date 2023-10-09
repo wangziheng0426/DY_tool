@@ -37,7 +37,7 @@ global proc J_animationExporter()//主窗口
         //     setParent ..;
         // setParent ..;
         formLayout  -numberOfDivisions 100  J_animationExporter_FromLayout1;
-            textScrollList  -sc "J_animationExporterSelitem"  -allowMultiSelection 1  J_allCameraNode;
+            textScrollList  -sc ""  -allowMultiSelection 1  J_allCameraNode;
             textScrollList  -sc "" -allowMultiSelection 1 J_allRefNode;
             checkBox -label "曲线平滑" -v 1 J_animationExporter_chbox01;
             checkBox -label "曲线打平"  J_animationExporter_chbox02;
@@ -125,24 +125,6 @@ global proc J_animationExporter()//主窗口
     python("JpyModules.public.J_cleanVaccine_gene()");
 }
 
-global proc J_animationExporterExportCam(string $outPath)
-{    
-    int $startFrame=`playbackOptions -query -minTime`;
-    int $endFrame=`playbackOptions -query -maxTime`+1;  
-    //配置参数
-    FBXResetExport ;
-    FBXExportInAscii  -v true;
-    FBXExportBakeComplexAnimation -v 1;    
-    FBXExportBakeComplexStart -v $startFrame;
-    FBXExportBakeComplexEnd -v $endFrame;
-    FBXExportBakeResampleAnimation -v 1;
-    FBXExportInAscii -v 1;
-    FBXExportIncludeChildren -v 1;
-    FBXExportSplitAnimationIntoTakes -clear;    
-    FBXExportDeleteOriginalTakeOnSplitAnimation -v true;
-    FBXExportSplitAnimationIntoTakes -v "cam" $startFrame $endFrame;
-    FBXExport -f $outPath -s ;
-}
 
 //查文件路径,未保存,则以c:/temp为准
 global proc string J_animationExporterGetFilePath()
@@ -166,25 +148,12 @@ global proc string J_animationExporterGetFileNameWithOutExtension()
 global proc J_animationExporterExportCamBut()
 {
     string $selCam[]=`textScrollList  -q -si  J_allCameraNode`;
-    string $outPath=J_animationExporterGetFilePath()+"/"+J_animationExporterGetFileNameWithOutExtension()+"/";
+    //string $outPath=J_animationExporterGetFilePath()+"/"+J_animationExporterGetFileNameWithOutExtension()+"/";
+    string $outPath=J_animationExporterGetFilePath()+"/cache/";
     sysFile -md $outPath;
     if (size($selCam)>0)
     {
-        select $selCam;        
-        //记录关键帧
-        int $startFrame=`playbackOptions -query -minTime`;
-        int $endFrame=`playbackOptions -query -maxTime`+1;  
-        bakeResults -t ($startFrame+":"+$endFrame) -s 0 -simulation true $selCam;
-        string $outfbx=python("JpyModules.animation.J_animationExporter.J_analysisCamName()");
-        if ($outfbx=="")
-        {
-            print "摄像机名解析失败，使用相机名导出";
-            string $sel[]=`ls -sl`;
-            $outfbx=$outPath+$sel[0]+".fbx";
-            //print $outfbx;
-        }
-        print ("相机导出："+$outfbx);
-        J_animationExporterExportCam($outfbx);
+        J_animationExporterExportCam($selCam);
         
         //导出后打开文件夹
         string $cmd="os.startfile(os.path.dirname(\""+$outPath+"\"))";
@@ -192,6 +161,41 @@ global proc J_animationExporterExportCamBut()
     }
 }
 
+global proc J_animationExporterExportCam(string $cams[])
+{    
+    string $outPath=J_animationExporterGetFilePath()+"/cache/";
+
+    if (size($cams)>0)
+    {
+        select $cams;        
+        //记录关键帧
+        int $startFrame=`playbackOptions -query -minTime`;
+        int $endFrame=`playbackOptions -query -maxTime`+1;  
+        bakeResults -t ($startFrame+":"+$endFrame) -s 0 -simulation true $cams;
+        string $outfbx=python("JpyModules.animation.J_animationExporter.J_analysisCamName()")+".fbx";
+        if ($outfbx=="")
+        {
+            print "摄像机名解析失败，使用相机名导出";
+            string $sel[]=`ls -sl`;
+            $outfbx=$sel[0]+".fbx";
+        }
+        $outfbx=$outPath+$outfbx;
+        print ("相机导出："+$outfbx);
+        //配置参数
+        FBXResetExport ;
+        FBXExportInAscii  -v true;
+        FBXExportBakeComplexAnimation -v 1;    
+        FBXExportBakeComplexStart -v $startFrame;
+        FBXExportBakeComplexEnd -v $endFrame;
+        FBXExportBakeResampleAnimation -v 1;
+        FBXExportInAscii -v 1;
+        FBXExportIncludeChildren -v 1;
+        FBXExportSplitAnimationIntoTakes -clear;    
+        FBXExportDeleteOriginalTakeOnSplitAnimation -v true;
+        FBXExportSplitAnimationIntoTakes -v "cam" $startFrame $endFrame;
+        FBXExport -f $outfbx -s ;
+    }
+}
 
 
 //导出动画
@@ -203,59 +207,33 @@ global proc J_animationExporterExportAniBut()
         python("JpyModules.animation.J_animationExporter.J_exportAnimationToAbc('"+$item +"')");
     }
     J_animationExporterExportCamBut();
-    string $outPath=J_animationExporterGetFilePath()+"/"+J_animationExporterGetFileNameWithOutExtension()+"/";
+    string $outPath=J_animationExporterGetFilePath()+"/cache/";
     //导出后打开文件夹
     string $cmd="os.startfile(os.path.dirname(\""+$outPath+"\"))";
     python($cmd); 
     
 }
+//批量导出动画
 global proc J_animationExporterExportBatBut(int $state)
 {
     string $file[]=`fileDialog2 -fileMode 2 `;
     string $mayaFiles[]=`getFileList -folder $file[0] -filespec "*.m?" `;
     string $filter=`textField -q -text J_tex`;
-    string $sysCam[]={"|back","|front","|left","|persp","|side","|top"};
-    for ($item in $mayaFiles)
+
+    for ($fItem in $mayaFiles)
     {
-        if (`endsWith $item ".mb"` ||`endsWith $item ".ma"` )
-        {
-            file -f  -prompt false   -open ($file[0]+"/"+$item );
-            string $allCamera[]=`ls -type "camera"`;
-            string $allCamTr[]=`listRelatives  -fullPath -p $allCamera`;
-            //设置导出路径
-            string $finalOutPath=J_animationExporterGetFilePath()+"/"+J_animationExporterGetFileNameWithOutExtension()+"/";
-            sysFile -md $finalOutPath;
-            //导出相机
-            for ($item0 in $allCamTr)
-            {
-                string $outPath=$finalOutPath;
-                int $temp=0;
-                for ($item1 in $sysCam)
-                {
-                    if ($item0==$item1)$temp=1;
-                }
-                if ($temp==0)
-                {
-                string $outfbx=python("JpyModules.animation.J_animationExporter.J_analysisCamName()");
-                if ($outfbx=="")
-                {
-                    print "摄像机名解析失败，使用相机名导出";
-                    select $item;
-                    string $sel[]=`ls -sl`;
-                    $outfbx=$outPath+$sel[0]+".fbx";
-                    //print $outfbx;
-                }
-                print ("相机导出："+$outfbx);
-                J_animationExporterExportCam($outfbx);
-                }
-            }
-            //导出角色abc
-            
-        
-        
+        string $allCamera[]=`ls -type "camera"`;
+        string $sysCam[]={"|back","|front","|left","|persp","|side","|top"};
+        string $allCamTr[]=`listRelatives  -fullPath -p $allCamera`;
+        string $exportCam[]= `stringArrayRemove $sysCam $allCamTr `;
+        J_animationExporterExportCam($exportCam);
+        string $allRefFile[]=`file -q -r`;
+        for ($item0 in $allRefFile)
+        {   
+            string $refNode=`referenceQuery -referenceNode $item0`; 
+            python("JpyModules.animation.J_animationExporter.J_exportAnimationToAbc('"+$refNode +"')");
         }
     }
-
 }
 //删除名字空间
 global proc  J_animationExporterRemoveAllNameSpace()

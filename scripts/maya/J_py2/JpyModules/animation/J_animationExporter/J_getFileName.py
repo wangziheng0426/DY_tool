@@ -20,8 +20,7 @@ def J_getFileName():
         return ''
 def J_analysisCamName():    
     fileFullName=cmds.file(query=True,sceneName=True)[:-3]
-    filePath=JpyModules.public.J_getMayaFileFolder()+'/'+\
-    JpyModules.public.J_getMayaFileNameWithOutExtension()
+    #filePath=JpyModules.public.J_getMayaFileFolder()+'/cache'
     res=''
     jishu=re.search('/ss[0-9]{2}/',fileFullName)
     if jishu!=None:
@@ -46,8 +45,8 @@ def J_analysisCamName():
         res=res+"_"+ jingtou.group()
     else:
         return ''
-    if not os.path.exists(filePath):os.makedirs(filePath)
-    return filePath+'/'+(res+"_cam.fbx").replace('/','')
+    
+    return res.replace('/','')
 #分析资产类型和名称，返回元组（类型，名称）
 def J_analysisAssetsName(fileFullName):    
     #分析角色名，如果失败，则返回文件名
@@ -56,7 +55,6 @@ def J_analysisAssetsName(fileFullName):
         return chName.group().replace('/rig/','').replace('/','_')
     else:
         return os.path.splitext(os.path.basename(fileFullName))[0]
-print J_analysisAssetsName('Z:/XWDZ/assets/prp/tongHu/rig/publish/tongHu_rig.mb')
 
 if __name__=='__main__':
     print J_analysisCamName()

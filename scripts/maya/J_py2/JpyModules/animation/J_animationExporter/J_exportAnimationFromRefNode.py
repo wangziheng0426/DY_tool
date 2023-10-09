@@ -203,10 +203,15 @@ def J_exportToFbxFile(outPath,takeName='take001',QuaternionMode="resample",start
 
 def J_exportAnimationToAbc(refNode):
     refFile=cmds.referenceQuery(refNode,filename=1 )
-    finalOutPath=JpyModules.public.J_getMayaFileFolder()+"/"+JpyModules.public.J_getMayaFileNameWithOutExtension()+"_cache"
+    finalOutPath=JpyModules.public.J_getMayaFileFolder()+"/cache"
     chName=JpyModules.animation.J_animationExporter.J_analysisAssetsName(refFile)
     fileFullName=cmds.file(query=True,sceneName=True,shortName=True)[:-3]
-    cacheNameTemp='XWDZ_'
+    cacheNameTemp='proj_'
+    projectRoot=re.search('/\w*/assets',refFile)
+    if projectRoot!=None:
+        cacheNameTemp= projectRoot.group().replace('/assets',"").replace('/',"")+'_'
+    else :
+        print ("未找到工程根目录，可能资产不在assets文件夹下，请核对")
     jishu=re.search('/s[0-9]{3}/',fileFullName)
     if jishu!=None:
         cacheNameTemp+= jishu.group().replace('/',"")
@@ -215,6 +220,9 @@ def J_exportAnimationToAbc(refNode):
     for itema in cmds.referenceQuery(refNode,nodes=1):
         if itema.endswith('srfNUL'):
             templist.append(itema)
-    JpyModules.public.J_exportAbc(0,nodesToExport=templist,cacheFileName=cacheNameTemp,j_abcCachePath=finalOutPath)
+    JpyModules.public.J_exportAbc(mode=0,exportMat=False,
+                                  nodesToExport=templist,
+                                  cacheFileName=cacheNameTemp,
+                                  j_abcCachePath=finalOutPath)
 if __name__=='__main__':
     J_exportAnimationFromRefNode('RG_Nakayi_endRN','c:/temp/aa.fbx')

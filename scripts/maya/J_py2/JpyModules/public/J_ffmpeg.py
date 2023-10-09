@@ -6,7 +6,7 @@
 # @brief 调用ffmpeg功能 
 # @Author        : 张千桔
 # @Last modified : 15:18 2021/11/06
-# @Filename      : J_exportAbc.py
+# @Filename      : J_ffmpeg.py
 # @Description   :
 ##############################################
 import os,sys,json,time,shutil,subprocess
