@@ -51,10 +51,12 @@ def J_analysisCamName():
 def J_analysisAssetsName(fileFullName):    
     #分析角色名，如果失败，则返回文件名
     chName=re.search('[a-zA-Z]*/\w*/rig/',fileFullName)
+    chName1=re.search('[a-zA-Z]*/\w*/Rig/',fileFullName)
     if chName!=None:
         return chName.group().replace('/rig/','').replace('/','_')
-    else:
-        return os.path.splitext(os.path.basename(fileFullName))[0]
+    if chName1!=None:
+        return chName1.group().replace('/Rig/','').replace('/','_')
+    return os.path.splitext(os.path.basename(fileFullName))[0]
 
 if __name__=='__main__':
     print J_analysisCamName()
