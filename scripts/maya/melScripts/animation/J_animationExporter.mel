@@ -222,16 +222,20 @@ global proc J_animationExporterExportBatBut(int $state)
 
     for ($fItem in $mayaFiles)
     {
-        string $allCamera[]=`ls -type "camera"`;
-        string $sysCam[]={"|back","|front","|left","|persp","|side","|top"};
-        string $allCamTr[]=`listRelatives  -fullPath -p $allCamera`;
-        string $exportCam[]= `stringArrayRemove $sysCam $allCamTr `;
-        J_animationExporterExportCam($exportCam);
-        string $allRefFile[]=`file -q -r`;
-        for ($item0 in $allRefFile)
-        {   
-            string $refNode=`referenceQuery -referenceNode $item0`; 
-            python("JpyModules.animation.J_animationExporter.J_exportAnimationToAbc('"+$refNode +"')");
+        if (`endsWith $fItem ".mb"` ||`endsWith $fItem ".ma"` )
+        {
+            file -f  -prompt false   -open ($file[0]+"/"+$fItem );
+            string $allCamera[]=`ls -type "camera"`;
+            string $sysCam[]={"|back","|front","|left","|persp","|side","|top"};
+            string $allCamTr[]=`listRelatives  -fullPath -p $allCamera`;
+            string $exportCam[]= `stringArrayRemove $sysCam $allCamTr `;
+            J_animationExporterExportCam($exportCam);
+            string $allRefFile[]=`file -q -r`;
+            for ($item0 in $allRefFile)
+            {   
+                string $refNode=`referenceQuery -referenceNode $item0`; 
+                python("JpyModules.animation.J_animationExporter.J_exportAnimationToAbc('"+$refNode +"')");
+            }
         }
     }
 }
