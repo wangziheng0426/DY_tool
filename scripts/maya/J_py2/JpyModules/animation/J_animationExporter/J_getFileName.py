@@ -47,16 +47,18 @@ def J_analysisCamName():
         return ''
     
     return res.replace('/','')
-#分析资产类型和名称，返回元组（类型，名称）
+
+#分析资产类型和名称，返回（类型_名称）
 def J_analysisAssetsName(fileFullName):    
     #分析角色名，如果失败，则返回文件名
-    chName=re.search('[a-zA-Z]*/\w*/rig/',fileFullName)
-    chName1=re.search('[a-zA-Z]*/\w*/Rig/',fileFullName)
-    if chName!=None:
-        return chName.group().replace('/rig/','').replace('/','_')
-    if chName1!=None:
-        return chName1.group().replace('/Rig/','').replace('/','_')
-    return os.path.splitext(os.path.basename(fileFullName))[0]
-
+    if os.path.exists(fileFullName):
+        chName=re.search('[a-zA-Z]*/\w*/rig/',fileFullName,re.IGNORECASE)
+        if chName!=None:
+            return chName.group().replace('/rig/','').replace('/','_')
+        else:
+            return os.path.splitext(os.path.basename(fileFullName))[0]
+    else:
+        print (u'文件不存在，请核实')
+        return ('none_temp')
 if __name__=='__main__':
     print J_analysisCamName()

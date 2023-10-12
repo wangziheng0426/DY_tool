@@ -212,9 +212,9 @@ def J_exportAnimationToAbc(refNode):
         cacheNameTemp= projectRoot.group().replace('/assets',"").replace('/',"")+'_'
     else :
         print ("未找到工程根目录，可能资产不在assets文件夹下，请核对")
-    jishu=re.search('/s[0-9]{3}/',fileFullName)
-    if jishu!=None:
-        cacheNameTemp+= jishu.group().replace('/',"")
+    #jishu=re.search('/s[0-9]{3}/',fileFullName)
+    #if jishu!=None:
+    #    cacheNameTemp+= jishu.group().replace('/',"")
     cacheNameTemp+=chName+"@"+refNode+"_ani"
     templist=[]
     for itema in cmds.referenceQuery(refNode,nodes=1):

@@ -14,4 +14,7 @@
   <SubMenu> 拍平工具 J_playBlastTool animation/J_playBlastTool.mel </SubMenu>
   <SubMenu> 动画导出 J_animationExporter animation/J_animationExporter.mel </SubMenu>  
 
+  <MainMenu> 解算工具 vfx </MainMenu>  
+  <SubMenu> 解算&缓存 J_CFXWorkFlow vfx/J_CFXWorkFlow.mel </SubMenu>
+  
 </root>
