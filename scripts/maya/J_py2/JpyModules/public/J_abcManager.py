@@ -10,8 +10,8 @@ import maya.cmds as cmds
 import maya.mel as mel
 import os,sys,json
 import maya.api.OpenMaya as om2
-#导出abc缓存,模式1普通模式,直接导出所选模型为一个整体abc文件
-#模式2单独导出每个模型文件
+#导出abc缓存,模式0普通模式,直接导出所选模型为一个整体abc文件
+#模式1单独导出每个模型文件,
 def J_exportAbc(mode=1,exportMat=True,nodesToExport=[],exportAttr=[],cacheFileName='',j_abcCachePath=''):
     import JpyModules
     #导出属性，未定义，则使用默认
@@ -25,7 +25,7 @@ def J_exportAbc(mode=1,exportMat=True,nodesToExport=[],exportAttr=[],cacheFileNa
         print (u"选点东西吧")
         return
     if len(J_getAllMeshs(nodesToExport))<1:
-        print (u"未选择有效的mesh或者组")
+        print (u"未选择有效的mesh或者组，模型导出结束")
         return
     #解锁默认材质集
     cmds.lockNode("initialShadingGroup", l=0, lu=0)
@@ -70,9 +70,7 @@ def J_exportAbc(mode=1,exportMat=True,nodesToExport=[],exportAttr=[],cacheFileNa
         for nitem in nodesToExport:
             exportString+=' -root '+nitem +" "
         exportString+=' -file '+j_abcCachePath+'/'+cacheFileName+'.abc"'
-        #outFile=open(j_abcCachePath+'/abcLog.jcl','w')
-        #outFile.write(json.dumps(logStr,encoding='utf-8',ensure_ascii=False)) 
-        #outFile.close()
+
         mel.eval(exportString)
     #按照选择的对象每个单独导出一个abc
     if mode==1:

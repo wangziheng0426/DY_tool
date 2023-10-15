@@ -6,7 +6,7 @@
 # @brief 调用ffmpeg功能 
 # @Author        : 张千桔
 # @Last modified : 15:18 2021/11/06
-# @Filename      : J_ffmpeg.py
+# @Filename      : J_exportAbc.py
 # @Description   :
 ##############################################
 import os,sys,json,time,shutil,subprocess
@@ -51,7 +51,7 @@ def compressFileSeqTovideo(compressPath,fileList=[],frameRate=24,waterMark='',ou
     compressFile.close()
 
     #ffmpeg路径
-    ffmpegPath= __file__.split('/scripts/maya')[0]+'/thirdParty/ffmpeg.exe'
+    ffmpegPath= __file__.split('/scripts/maya')[0]+'/other/thirdParty/ffmpeg.exe'
     #ffmpegPath='c:/ffmpeg.exe'
     if not os.path.exists(ffmpegPath):
         print ("ffmpeg is missing!")
@@ -74,7 +74,7 @@ def compressFileSeqTovideo(compressPath,fileList=[],frameRate=24,waterMark='',ou
     
     spr=subprocess.Popen(runStr)
     status=spr.wait()
-    print runStr
+    print (runStr)
     #由于 filter_complex滤镜和 vf滤镜不能混用，暂时多压缩一次
     if ass!='':
         runStr=ffmpegPath+' -y -r '+str(frameRate)+' -i '+"\""+ compressPath+'addWaterMarkfile.mp4'+"\""
@@ -82,7 +82,7 @@ def compressFileSeqTovideo(compressPath,fileList=[],frameRate=24,waterMark='',ou
         runStr+=' -c:v h264 -crf 18  ' +"\""+outFile+"\""
         spr1=subprocess.Popen(runStr)
         status=spr1.wait()
-    print runStr
+    print (runStr)
     time.sleep(2)
     return outFile
     #os.startfile(compressPath)  

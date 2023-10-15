@@ -4,7 +4,9 @@
   <SubMenu> 批量改名 J_rename_win common/J_rename_win.mel </SubMenu>  
   <SubMenu> 检查重名工具 J_moreThanOneObj common/J_moreThanOneObj.mel </SubMenu>  
   <SubMenu> 批量传预设工具 J_attrTransfor common/J_attrTransfor.mel </SubMenu>  
-  
+
+  <MainMenu> 流程工具 pipeline </MainMenu>  
+  <SubMenu> 资源导出 J_resourceExporter pipeline/J_resourceExporter.mel </SubMenu>  
   
   <MainMenu> 模型工具 model </MainMenu>  
   <SubMenu> 模型整理 J_modelClearMC model/J_modelClearMC.mel </SubMenu>  
@@ -12,7 +14,6 @@
     
   <MainMenu> 动画工具 anim </MainMenu>  
   <SubMenu> 拍平工具 J_playBlastTool animation/J_playBlastTool.mel </SubMenu>
-  <SubMenu> 动画导出 J_animationExporter animation/J_animationExporter.mel </SubMenu>  
 
   <MainMenu> 解算工具 vfx </MainMenu>  
   <SubMenu> 解算&缓存 J_CFXWorkFlow vfx/J_CFXWorkFlow.mel </SubMenu>
