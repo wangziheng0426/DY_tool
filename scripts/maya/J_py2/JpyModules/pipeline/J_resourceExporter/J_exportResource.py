@@ -69,7 +69,7 @@ def J_exportAnimationFromRefToAbc(refNode,filter=['srfNUL']):
     refFile=cmds.referenceQuery(refNode,filename=1 )
     finalOutPath=JpyModules.public.J_getMayaFileFolder()+"/cache"
     assetName=J_analysisAssetsName(refFile)
-    finalOutPath+='/'+assetName
+    finalOutPath+='/'+assetName+"@"+refNode
     cacheNameTemp=''
     projectRoot=re.search('/\w*/assets',refFile)
     if projectRoot!=None:
@@ -77,7 +77,7 @@ def J_exportAnimationFromRefToAbc(refNode,filter=['srfNUL']):
     else :
         print (u"未找到工程根目录，可能资产不在assets文件夹下，请核对")
 
-    cacheNameTemp+=assetName+"@"+refNode+"_ani"
+    cacheNameTemp+=assetName+"_ani"
     print (finalOutPath+"///"+cacheNameTemp)
     templist=[]
     #按过滤器查找要导出的节点,如果没有符合的节点,则导出选择的对象
@@ -102,10 +102,10 @@ def J_exportAnimationFromRefNodeToFbx(refNode,jointOnly=False):
     #文件名
     refFile=cmds.referenceQuery(refNode,filename=1)
     assetName=J_analysisAssetsName(refFile)       
-    filePath+='/'+assetName
+    filePath+='/'+assetName+"@"+refNode
     if not os.path.exists(filePath):
         os.makedirs(filePath)
-    outPath=filePath+'/'+assetName+"@"+refNode+"_ani.fbx"
+    outPath=filePath+'/'+assetName+"_ani.fbx"
     if (cmds.objExists(refNode) ):        
         #如果ref未加载，则加载
         if (not cmds.referenceQuery(refNode,isLoaded=1) ):

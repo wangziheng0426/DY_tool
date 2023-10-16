@@ -53,7 +53,7 @@ def J_CFXWorkFlow_outAbcGeo():
                     cacheName=projName+ "_"+asssetTypeName+"_"+assetName+"_sim"
                 else:
                     cacheName=projName+ "_"+asssetTypeName+"_"+mitem.replace(":","@")
-                outPath+=assetName
+                outPath+=asssetTypeName+'_'+assetName+"@"+refNode
         else:
             #如果选择的对象已经没有ref了，则通过节点名称分析，读取冒号前面的部分
             #解析项目名称
