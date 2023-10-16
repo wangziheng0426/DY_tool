@@ -98,6 +98,8 @@ def J_exportAnimationFromRefNodeToFbx(refNode,jointOnly=False):
 
     #文件路径
     filePath=JpyModules.public.J_getMayaFileFolder()+'/cache'    
+    if not os.path.exists(filePath):
+        os.makedirs(filePath)
     #文件名
     refFile=cmds.referenceQuery(refNode,filename=1)
     assetName=J_analysisAssetsName(refFile)       
