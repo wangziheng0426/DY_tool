@@ -1,0 +1,68 @@
+/////////////////////////////////////////////////////////////
+///\file animationExporter.mel
+///\brief 缓存导入
+///
+///\author 桔
+///\version 1
+///\date  9:45 2023/10/16
+///History:  缓存导入
+///
+///////////////////////////////////////////////////////////////
+global proc J_resourceSetupTool()//主窗口
+{
+    if (`window -ex J_resourceSetupTool`)
+        deleteUI -window J_resourceSetupTool;
+    window -w 300 -h 400 -title "资产管理" J_resourceSetupTool;
+    string $geoSettingCheckBox[];
+    formLayout  -numberOfDivisions 100  J_resourceSetupTool_FromLayout0;
+        formLayout  -numberOfDivisions 100  J_resourceSetupTool_FromLayout1;
+            treeView -numberOfButtons 1  -abr true J_loadCache_TreeView;
+        setParent ..;
+        textField -text "资产路径" J_resourceSetupTool_assetsPath;
+        button -l "加载镜头" -c  "J_resourceSetupTool_loadFile" J_rs_loadFile;
+        button -l "增加缓存资产" -c  "" J_rs_loadAsset;
+        button -l "读取所有缓存" -c  "J_resourceExporter_loadCache" J_rs_loadCache;
+        formLayout -e
+			-attachForm  J_loadCache_TreeView "top" 2
+			-attachForm  J_loadCache_TreeView "left" 2
+			-attachForm  J_loadCache_TreeView "bottom" 2
+			-attachForm  J_loadCache_TreeView "right" 2
+		J_resourceSetupTool_FromLayout1;
+    formLayout -e 
+        -ap J_resourceSetupTool_FromLayout1 left 0 1
+        -ap J_resourceSetupTool_FromLayout1 right 0 99
+        -af J_resourceSetupTool_FromLayout1 top 0
+        -ap J_resourceSetupTool_FromLayout1 bottom 50 99
+
+        -ap J_resourceSetupTool_assetsPath left 0 1
+        -ap J_resourceSetupTool_assetsPath right 0 99
+        -ac J_resourceSetupTool_assetsPath top  1 J_resourceSetupTool_FromLayout1
+
+        -ap J_rs_loadFile left 0 1
+        -ap J_rs_loadFile right 0 32
+        -ac J_rs_loadFile top  2 J_resourceSetupTool_assetsPath
+
+        -ap J_rs_loadAsset left 0 33
+        -ap J_rs_loadAsset right 0 65
+        -ac J_rs_loadAsset top  2 J_resourceSetupTool_assetsPath
+
+        -ap J_rs_loadCache left 0 66
+        -ap J_rs_loadCache right 0 99
+        -ac J_rs_loadCache top  2 J_resourceSetupTool_assetsPath
+
+    J_resourceSetupTool_FromLayout0;
+
+    
+    
+    python("JpyModules.pipeline.J_resourceSetupTool.J_resourceSetupTool_init()");
+
+    python("JpyModules.public.J_deleteUnknownNode()");
+    python("JpyModules.public.J_cleanVaccine_gene()");
+    showWindow J_resourceSetupTool;
+}
+global proc J_resourceSetupToolInit()
+{
+
+}
+
+J_resourceSetupTool;

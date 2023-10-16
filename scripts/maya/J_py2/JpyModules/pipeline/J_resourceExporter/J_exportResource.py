@@ -69,7 +69,7 @@ def J_exportAnimationFromRefToAbc(refNode,filter=['srfNUL']):
     refFile=cmds.referenceQuery(refNode,filename=1 )
     finalOutPath=JpyModules.public.J_getMayaFileFolder()+"/cache"
     assetName=J_analysisAssetsName(refFile)
-    #fileFullName=cmds.file(query=True,sceneName=True,shortName=True)[:-3]
+    finalOutPath+='/'+assetName
     cacheNameTemp=''
     projectRoot=re.search('/\w*/assets',refFile)
     if projectRoot!=None:
@@ -78,6 +78,7 @@ def J_exportAnimationFromRefToAbc(refNode,filter=['srfNUL']):
         print (u"未找到工程根目录，可能资产不在assets文件夹下，请核对")
 
     cacheNameTemp+=assetName+"@"+refNode+"_ani"
+    print (finalOutPath+"///"+cacheNameTemp)
     templist=[]
     #按过滤器查找要导出的节点,如果没有符合的节点,则导出选择的对象
     for itema in cmds.referenceQuery(refNode,nodes=1):
@@ -98,12 +99,12 @@ def J_exportAnimationFromRefNodeToFbx(refNode,jointOnly=False):
 
     #文件路径
     filePath=JpyModules.public.J_getMayaFileFolder()+'/cache'    
-    if not os.path.exists(filePath):
-        os.makedirs(filePath)
     #文件名
     refFile=cmds.referenceQuery(refNode,filename=1)
     assetName=J_analysisAssetsName(refFile)       
-
+    filePath+='/'+assetName
+    if not os.path.exists(filePath):
+        os.makedirs(filePath)
     outPath=filePath+'/'+assetName+"@"+refNode+"_ani.fbx"
     if (cmds.objExists(refNode) ):        
         #如果ref未加载，则加载
@@ -164,7 +165,7 @@ def J_exportAnimationFromRefNodeToFbx(refNode,jointOnly=False):
             cmds.select(newRoot)
             #关闭约束
             cmds.delete(cmds.ls(type= 'constraint'))
-        
+
             #羽化动画曲线
             for jointItem in cmds.ls(type ='joint'):
                 if cmds.checkBox('J_resourceExporter_chbox01' ,q=1 ,v =1):
@@ -181,7 +182,8 @@ def J_exportAnimationFromRefNodeToFbx(refNode,jointOnly=False):
                     cmds.setAttr(jointItem+".rotateX",0) 
                     cmds.setAttr(jointItem+".rotateY",0) 
                     cmds.setAttr(jointItem+".rotateZ",0) 
-
+        #删除assemblyReference，否则无法删除名字空间
+        cmds.delete(cmds.ls(type= 'assemblyReference'))
         #删除名字空间
         JpyModules.public.J_removeAllNameSpace()
         #导出动画
