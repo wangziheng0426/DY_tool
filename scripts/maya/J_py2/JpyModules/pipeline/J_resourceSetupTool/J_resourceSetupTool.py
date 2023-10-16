@@ -12,6 +12,8 @@ import maya.mel as mel
 import maya.api.OpenMaya as om2
 import re,os
 import JpyModules
+import xgenm.xgGlobal as xgg
+import xgenm as xg
 #相机导fbx
 def J_resourceSetupTool_init():
     cmds.treeView( 'J_loadCache_TreeView', edit=True, removeAll = True )
@@ -117,6 +119,7 @@ def J_resourceSetupTool_refFile(*args):
             animAbcfile=''
             simAbcFile=''
             for fItem1 in os.listdir(abcPath):
+                #将abc缓存merge到模型
                 if fItem1.endswith('_ani.abc') and fItem1.find(fileName.replace('_srf','_ani'))>-1 :
                     animAbcfile=abcPath+"/"+fItem1
                     #print animAbcfile
@@ -125,6 +128,23 @@ def J_resourceSetupTool_refFile(*args):
                     simAbcFile=abcPath+"/"+fItem1
                     #print simAbcFile
                     cmds.AbcImport(abcPath+"/"+fItem1 ,mode= 'import' ,connect =(modelNameSpace+":simNUL"),createIfNotFound=1)
+                #自动加载xgen曲线
+                if fItem1.endswith('_OutputCurves.abc'):
+                    if xgg.Maya:
+                        palettes = xg.palettes()
+                        for palette in palettes:
+                            print ("Collection:" + palette)
+                            descriptions = xg.descriptions(palette)
+                            for description in descriptions:  
+                                #先关闭所有缓存，避免xgen报错
+                                xg.setAttr('useCache','false',palette,description,'SplinePrimitive')
+                                xg.setAttr('liveMode','false',palette,description,'SplinePrimitive')                              
+                                #abc名称匹配xgen描述，相符则加载缓存
+                                if description.find(fItem1.replace('_OutputCurves.abc',''))>-1:
+                                    xg.setAttr('useCache','true',palette,description,'SplinePrimitive')
+                                    xg.setAttr('cacheFileName',abcPath+"/"+fItem1 ,palette,description,'SplinePrimitive')
+                                    de = xgg.DescriptionEditor
+                                    de.refresh("Full")
         else:
             print (u'未找到资产：'+item.split('@')[-1])
         
