@@ -100,16 +100,18 @@ def J_resourceSetupTool_addItem(cacheAssetPath,assetName,subPathName=['chr','prp
 #按钮功能 文件存在则加载
 def J_resourceSetupTool_refFile(*args):
     itemInfo=cmds.treeView('J_loadCache_TreeView',q=1,children=args[0])
-
+    
     for item in itemInfo:
         fileName=os.path.splitext(os.path.basename(item.split('@')[-1]))[0]
 
-        if os.path.exists(item.split('@')[-1]):        
+        if os.path.exists(item.split('@')[-1])  :        
             refFile=cmds.file(item.split('@')[-1], reference=True, mergeNamespacesOnClash=False, namespace=fileName) 
             refNode=cmds.referenceQuery(refFile,referenceNode=True)
-        
+            #名字空间默认带冒号去掉开头的冒号
             modelNameSpace=cmds.referenceQuery(refNode,namespace=True)
-
+            if modelNameSpace.startswith(":"):
+                modelNameSpace=modelNameSpace[1:]
+            print modelNameSpace
             #合并abc到模型节点 ，根据记录的abc目录 和列表分析出的角色名，找到abc
             abcPath=cmds.textField('J_resourceSetupTool_abcPath',q=1,text=1)
             #通过父层获取角色名
@@ -128,21 +130,26 @@ def J_resourceSetupTool_refFile(*args):
                     simAbcFile=abcPath+"/"+fItem1
                     #print simAbcFile
                     cmds.AbcImport(abcPath+"/"+fItem1 ,mode= 'import' ,connect =(modelNameSpace+":simNUL"),createIfNotFound=1)
-                #自动加载xgen曲线
-                if fItem1.endswith('_OutputCurves.abc'):
-                    if xgg.Maya:
-                        palettes = xg.palettes()
-                        for palette in palettes:
-                            print ("Collection:" + palette)
-                            descriptions = xg.descriptions(palette)
-                            for description in descriptions:  
-                                #先关闭所有缓存，避免xgen报错
-                                xg.setAttr('useCache','false',palette,description,'SplinePrimitive')
-                                xg.setAttr('liveMode','false',palette,description,'SplinePrimitive')                              
-                                #abc名称匹配xgen描述，相符则加载缓存
+            #自动加载xgen曲线
+            import time
+            time.sleep(3)
+            if xgg.Maya:
+                palettes = xg.palettes()
+                for palette in palettes:
+                    
+                    if palette.find(modelNameSpace)>-1:                    
+                        print ("Collection:" + palette)
+                        descriptions = xg.descriptions(palette)
+                        for description in descriptions:  
+                            #先关闭所有缓存，避免xgen报错
+                            xg.setAttr('useCache','false',palette,description,'SplinePrimitive')
+                            xg.setAttr('liveMode','false',palette,description,'SplinePrimitive')                              
+                            #abc名称匹配xgen描述，相符则加载缓存
+                            for fItem1 in os.listdir(abcPath):
                                 if description.find(fItem1.replace('_OutputCurves.abc',''))>-1:
+                                    print (description+u":加载abc")
                                     xg.setAttr('useCache','true',palette,description,'SplinePrimitive')
-                                    xg.setAttr('cacheFileName',abcPath+"/"+fItem1 ,palette,description,'SplinePrimitive')
+                                    xg.setAttr('cacheFileName',str(abcPath+"/"+fItem1) ,str(palette),str(description),'SplinePrimitive')
                                     de = xgg.DescriptionEditor
                                     de.refresh("Full")
         else:
