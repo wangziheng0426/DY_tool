@@ -10,7 +10,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
 import maya.api.OpenMaya as om2
-import re,os
+import os
 import JpyModules
 import xgenm.xgGlobal as xgg
 import xgenm as xg
@@ -18,9 +18,13 @@ import xgenm as xg
 def J_resourceSetupTool_init():
     cmds.treeView( 'J_loadCache_TreeView', edit=True, removeAll = True )
     #读取一个目录，和下面的缓存
-    inputFolder= cmds.fileDialog2(fileMode=2,startingDirectory=r'Z:\XWDZ\series\shots\ss01\ep21\s007\c0009\ani\publish\v001\cx')[0]
+    inputFolder= cmds.fileDialog2(fileMode=2)[0]
+    if inputFolder!=None: 
+        inputFolder=inputFolder[0]
+    else:
+        return
     cmds.textField('J_resourceSetupTool_abcPath',e=1,text=inputFolder)
-    #如果设置了资产目录则世界使用，未设置则先分析资产目录
+    #如果设置了资产目录则使用，未设置则先分析资产目录
     assetsPath=cmds.textField('J_resourceSetupTool_assetsPath',q=1,text=1)
     if not os.path.exists(assetsPath):
         assetsPath =inputFolder.split('/series/')[0]+"/assets"        
@@ -111,7 +115,7 @@ def J_resourceSetupTool_refFile(*args):
             modelNameSpace=cmds.referenceQuery(refNode,namespace=True)
             if modelNameSpace.startswith(":"):
                 modelNameSpace=modelNameSpace[1:]
-            print modelNameSpace
+            #print modelNameSpace
             #合并abc到模型节点 ，根据记录的abc目录 和列表分析出的角色名，找到abc
             abcPath=cmds.textField('J_resourceSetupTool_abcPath',q=1,text=1)
             #通过父层获取角色名
@@ -131,8 +135,6 @@ def J_resourceSetupTool_refFile(*args):
                     #print simAbcFile
                     cmds.AbcImport(abcPath+"/"+fItem1 ,mode= 'import' ,connect =(modelNameSpace+":simNUL"),createIfNotFound=1)
             #自动加载xgen曲线
-            import time
-            time.sleep(3)
             if xgg.Maya:
                 palettes = xg.palettes()
                 for palette in palettes:
@@ -156,5 +158,7 @@ def J_resourceSetupTool_refFile(*args):
             print (u'未找到资产：'+item.split('@')[-1])
         
 
+def J_resourceSetupTool_saveSetting():
+    pass
 if __name__=='__main__':
     J_resourceSetupTool_init()
