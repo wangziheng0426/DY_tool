@@ -330,17 +330,6 @@ def J_exportFbxFromSelectionToEngine():
     os.startfile(os.path.dirname(JpyModules.public.J_exportFbx()))
 
 #分析资产类型和名称,如果分析成功，则返回资产“类型_名称”，分析失败，返回资产文件名，如果文件不存在则返回none_temp
-def J_analysisAssetsName(fileFullName):    
-    #分析角色名，如果失败，则返回文件名
-    if os.path.exists(fileFullName):
-        chName=re.search('[a-zA-Z]*/\w*/rig/',fileFullName,re.IGNORECASE)
-        if chName!=None:
-            return chName.group().replace('/rig/','').replace('/','_')
-        else:
-            return os.path.splitext(os.path.basename(fileFullName))[0]
-    else:
-        print (u'文件不存在，请核实')
-        return ('none_temp')
 def J_analysisCamName():    
     fileFullName=cmds.file(query=True,sceneName=True)[:-3]
     #filePath=JpyModules.public.J_getMayaFileFolder()+'/cache'
@@ -370,6 +359,20 @@ def J_analysisCamName():
         return ''
     
     return res.replace('/','') 
+#解析项目名称
+def J_analysisAssetsName(fileFullName):    
+    #分析角色名，如果失败，则返回文件名
+    if os.path.exists(fileFullName):
+        chName=re.search('[a-zA-Z]*/\w*/rig/',fileFullName,re.IGNORECASE)
+        if chName!=None:
+            return chName.group().replace('/rig/','').replace('/','_')
+        else:
+            return os.path.splitext(os.path.basename(fileFullName))[0]
+    else:
+        print (u'文件不存在，请核实')
+        return ('none_temp')
+
+
 #maya导出的fbx会自动添加subdeformer字段，强制擦除
 def J_replaceSubdeformer(fbxFile):
     filep=open(fbxFile,'r')
@@ -388,12 +391,12 @@ def J_replaceSubdeformer(fbxFile):
 
     filep1.write(res)
     filep1.close()
-    
 
 #从给定的ref节点中查找所有骨骼的根节点,只要节点父层不是骨骼，就会认为是根骨节
 def J_getRootJointFromRefNode(refNode):
     allNodes= cmds.referenceQuery(refNode,nodes=1)
     return J_getRootJointFromNodes(allNodes)
+#根据输入节点搜索子节点
 def J_getRootJointFromInputNodes(inputNodes):
     allNodes=cmds.listHistory(inputNodes)
     return J_getRootJointFromNodes(allNodes)

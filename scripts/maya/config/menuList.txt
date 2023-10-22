@@ -6,6 +6,7 @@
   <SubMenu> 批量传预设工具 J_attrTransfor common/J_attrTransfor.mel </SubMenu>  
 
   <MainMenu> 流程工具 pipeline </MainMenu>  
+  <SubMenu> 项目管理 J_projectManeger pipeline/J_projectManeger.mel </SubMenu>  
   <SubMenu> 资源导出 J_resourceExporter pipeline/J_resourceExporter.mel </SubMenu>  
   <SubMenu> 资源整合 J_resourceSetupTool pipeline/J_resourceSetupTool.mel </SubMenu> 
 
