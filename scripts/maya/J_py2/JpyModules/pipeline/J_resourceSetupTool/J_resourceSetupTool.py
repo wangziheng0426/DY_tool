@@ -18,7 +18,7 @@ import xgenm as xg
 def J_resourceSetupTool_init():
     cmds.treeView( 'J_loadCache_TreeView', edit=True, removeAll = True )
     #读取一个目录，和下面的缓存
-    inputFolder= cmds.fileDialog2(fileMode=2)[0]
+    inputFolder= cmds.fileDialog2(fileMode=2)
     if inputFolder!=None: 
         inputFolder=inputFolder[0]
     else:
