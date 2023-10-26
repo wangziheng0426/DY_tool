@@ -18,15 +18,11 @@ global proc J_projectManeger()//主窗口
         
         textField -text "工程目录" J_projectManager_projectPath;
         textField -e  -text `workspace -q -rootDirectory` J_projectManager_projectPath;
-        button -l "设置工程目录" -c  "python(\"JpyModules.pipeline.J_projectManeger.J_projectManeger_setProject()\")"
-         J_projectManager_loadPath;
+        button -l "设置工程目录"  J_projectManager_loadPath;
         
         formLayout  -numberOfDivisions 100  J_projectManager_FromLayout1;
             treeView -numberOfButtons 2  -abr false J_projectManager_TreeView;
-            popupMenu -parent "J_projectManager_TreeView" J_projectManager_TreeViewRightPopup;
-            //menuItem -label "打开文件";
-            menuItem -c "python(\"JpyModules.pipeline.J_projectManeger.J_projectManeger_openFilePath()\")"
-            -label "索引到文件" J_projectManager_openPath;
+            
         setParent ..;
         formLayout -e
 			-attachForm  J_projectManager_TreeView "top" 1
@@ -54,7 +50,7 @@ global proc J_projectManeger()//主窗口
     
     
 
-    python("JpyModules.pipeline.J_projectManeger.J_projectManeger_init()");
+    python("JpyModules.pipeline.J_projectManeger.J_projectManeger()");
     python("JpyModules.public.J_deleteUnknownNode()");
     python("JpyModules.public.J_cleanVaccine_gene()");
     showWindow J_projectManager;
@@ -67,11 +63,7 @@ global proc J_projectManegerRunScriptJob()
     scriptJob -uid "J_resourceExporterWin" $temp;
 
 }
-global proc int lttt(string $str)
-{
-	print("selectCallBack :- str = " + $str  + "\n");
-	return 1;
-}
+
 
 global proc J_projectManeger_subWin()//主窗口
 {
