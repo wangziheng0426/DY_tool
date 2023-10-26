@@ -30,7 +30,7 @@ def J_CFXWorkFlow_outAbcGeo():
             refNode=cmds.referenceQuery(mitem,tr=1,referenceNode=1)
             refFile=cmds.referenceQuery(refNode,filename=1)
             if os.path.exists(refFile):
-                
+                ######旧项目可用
                 #解析项目名称
                 projName=''
                 projectRoot=re.search('/\w*/assets',refFile)
@@ -47,6 +47,10 @@ def J_CFXWorkFlow_outAbcGeo():
                 #角色模型输出_ani布料包裹输出_sim，如果都不是，则使用选择的节点名称输出
                 if assetType!=None:
                     asssetTypeName= assetType.group().replace(assetName+'/rig',"").replace('/Rig/','').replace('/',"")
+
+                #新版根据meta解析资产并输出日志
+                # 
+                #     
                 if mitem.endswith('srfNUL'):
                     cacheName=projName+ "_"+asssetTypeName+"_"+assetName+"_ani"
                 elif mitem.endswith('simNUL'):
