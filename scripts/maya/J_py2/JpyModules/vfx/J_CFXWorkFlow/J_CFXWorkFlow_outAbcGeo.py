@@ -33,9 +33,10 @@ def J_CFXWorkFlow_outAbcGeo():
             if os.path.exists(refFile):
                 #新版根据meta解析资产并输出日志,如果存在meta，则使用meta的数据
                 projName=os.path.basename(cmds.workspace(q=1,rd=1)[0:-1])
-                asssetTypeName='_'
+                asssetTypeName=''
                 assetName=os.path.splitext(os.path.basename(refFile))[0]
-                j_meta=JpyModules.pipeline.J_meta(refFile)
+                #找工程目录下的jmeta
+                j_meta=JpyModules.pipeline.J_meta(cmds.workspace(q=1,rd=1)[0:-1])
                 if len(j_meta.metaInfo)>0 :
                     if j_meta.metaInfo.has_key('baseInfo'):
                         if j_meta.metaInfo['baseInfo'].has_key('projectPath'):
@@ -43,15 +44,18 @@ def J_CFXWorkFlow_outAbcGeo():
                     if j_meta.metaInfo.has_key('userInfo'):
                         for uk,uv in j_meta.metaInfo['userInfo'].items():
                             if refFile.startswith(j_meta.metaInfo['baseInfo']['projectPath']+uv):
-                                asssetTypeName='_'+uk[0:-4]+'_'
-                #     
+                                asssetTypeName=uv.split('/')[-1]
+                                for ftItem in os.listdir(j_meta.metaInfo['baseInfo']['projectPath']+uv):
+                                    if refFile.find(ftItem)>-1:
+                                        assetName=ftItem
+                #   print asssetTypeName
                 if mitem.endswith('srfNUL'):
-                    cacheName=projName+ asssetTypeName+assetName+"_ani"
+                    cacheName=projName+'_' +asssetTypeName+'_'+assetName+"_ani"
                 elif mitem.endswith('simNUL'):
-                    cacheName=projName+ asssetTypeName+assetName+"_sim"
+                    cacheName=projName+'_' +asssetTypeName+'_'+assetName+"_sim"
                 else:
                     cacheName=projName+ asssetTypeName+"_"+mitem.replace(":","@")
-                outPath+=asssetTypeName[1:]+'_'+assetName+"@"+refNode
+                outPath+=asssetTypeName+'_'+assetName+"@"+refNode
         else:
             #如果选择的对象已经没有ref了，则通过节点名称分析，读取冒号前面的部分
             #解析项目名称
@@ -65,11 +69,11 @@ def J_CFXWorkFlow_outAbcGeo():
         #如果是毛发曲线组，则输出曲线组的名称
         if mitem.find('_OutputCurves')>-1:
             cacheName=mitem.replace(":","@")
-        print (outPath+"/"+cacheName)
-        JpyModules.public.J_exportAbc(mode=0,exportMat=1,
+        print (u'输出缓存：'+outPath+"/"+cacheName)
+        JpyModules.public.J_exportAbc(mode=0,exportMat=0,
                 nodesToExport=[mitem],cacheFileName=cacheName,
                 j_abcCachePath=outPath)
-                
+    os.startfile(JpyModules.public.J_getMayaFileFolder()+"/cache/")            
 def J_CFXWorkFlow_selectSimGroup():
     cmds.select(cl=1)
     for item in cmds.ls(type="transform"):

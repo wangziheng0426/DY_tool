@@ -48,7 +48,7 @@ def J_exportAbc(mode=1,exportMat=True,nodesToExport=[],exportAttr=[],cacheFileNa
     logStr["settings"]["frameRange"]=[cmds.playbackOptions(query=True,minTime=True),
         cmds.playbackOptions(query=True,maxTime=True)]
     logStr["settings"]['mode']=0
-
+    logStr["settings"]['projectPath']=cmds.workspace(q=1,rd=1)[0:-1]
     #整体导出一个abc    
     count=0
     if mode==0:   
@@ -119,7 +119,7 @@ def J_exportAbc(mode=1,exportMat=True,nodesToExport=[],exportAttr=[],cacheFileNa
             mel.eval(exportStringa)
             count=count+1
     #if exportMat:
-    outFile=open(j_abcCachePath+'/abcLog.jcl','w')
+    outFile=open(j_abcCachePath+'/'+cacheFileName+'_Log.jcl','w')
     outFile.write(json.dumps(logStr,encoding='utf-8',ensure_ascii=False,sort_keys=True,indent=4,separators=(",",":"))) 
     outFile.close()
     #cmds.select(nodesToExport)
