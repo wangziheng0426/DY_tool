@@ -25,39 +25,33 @@ def J_CFXWorkFlow_outAbcGeo():
     for mitem in sel:
         outPath=JpyModules.public.J_getMayaFileFolder()+"/cache/"
         cacheName=''
+
         #判断是否为ref的对象
         if cmds.referenceQuery(mitem,isNodeReferenced=True):
             refNode=cmds.referenceQuery(mitem,tr=1,referenceNode=1)
             refFile=cmds.referenceQuery(refNode,filename=1)
             if os.path.exists(refFile):
-                ######旧项目可用
-                #解析项目名称
-                projName=''
-                projectRoot=re.search('/\w*/assets',refFile)
-                if projectRoot!=None:
-                    projName= projectRoot.group().replace('/assets',"").replace('/',"")                
-                #解析角色名称
-                assetName=''
-                chName=re.search('/\w*/rig/',refFile,re.IGNORECASE)
-                if chName!=None:
-                    assetName=chName.group().replace('/rig/','').replace('/Rig/','').replace('/','')
-                #解析资产类型
-                asssetTypeName=''
-                assetType=re.search('[a-zA-Z]*/'+assetName+'/rig/',refFile)
-                #角色模型输出_ani布料包裹输出_sim，如果都不是，则使用选择的节点名称输出
-                if assetType!=None:
-                    asssetTypeName= assetType.group().replace(assetName+'/rig',"").replace('/Rig/','').replace('/',"")
-
-                #新版根据meta解析资产并输出日志
-                # 
+                #新版根据meta解析资产并输出日志,如果存在meta，则使用meta的数据
+                projName=os.path.basename(cmds.workspace(q=1,rd=1)[0:-1])
+                asssetTypeName='_'
+                assetName=os.path.splitext(os.path.basename(refFile))[0]
+                j_meta=JpyModules.pipeline.J_meta(refFile)
+                if len(j_meta.metaInfo)>0 :
+                    if j_meta.metaInfo.has_key('baseInfo'):
+                        if j_meta.metaInfo['baseInfo'].has_key('projectPath'):
+                            projName=os.path.splitext(os.path.basename(j_meta.metaInfo['baseInfo']['projectPath']))[0]
+                    if j_meta.metaInfo.has_key('userInfo'):
+                        for uk,uv in j_meta.metaInfo['userInfo'].items():
+                            if refFile.startswith(j_meta.metaInfo['baseInfo']['projectPath']+uv):
+                                asssetTypeName='_'+uk[0:-4]+'_'
                 #     
                 if mitem.endswith('srfNUL'):
-                    cacheName=projName+ "_"+asssetTypeName+"_"+assetName+"_ani"
+                    cacheName=projName+ asssetTypeName+assetName+"_ani"
                 elif mitem.endswith('simNUL'):
-                    cacheName=projName+ "_"+asssetTypeName+"_"+assetName+"_sim"
+                    cacheName=projName+ asssetTypeName+assetName+"_sim"
                 else:
-                    cacheName=projName+ "_"+asssetTypeName+"_"+mitem.replace(":","@")
-                outPath+=asssetTypeName+'_'+assetName+"@"+refNode
+                    cacheName=projName+ asssetTypeName+"_"+mitem.replace(":","@")
+                outPath+=asssetTypeName[1:]+'_'+assetName+"@"+refNode
         else:
             #如果选择的对象已经没有ref了，则通过节点名称分析，读取冒号前面的部分
             #解析项目名称
@@ -72,7 +66,7 @@ def J_CFXWorkFlow_outAbcGeo():
         if mitem.find('_OutputCurves')>-1:
             cacheName=mitem.replace(":","@")
         print (outPath+"/"+cacheName)
-        JpyModules.public.J_exportAbc(mode=0,exportMat=False,
+        JpyModules.public.J_exportAbc(mode=0,exportMat=1,
                 nodesToExport=[mitem],cacheFileName=cacheName,
                 j_abcCachePath=outPath)
                 
