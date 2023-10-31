@@ -15,8 +15,7 @@ import JpyModules
 import xgenm.xgGlobal as xgg
 import xgenm as xg
 #相机导fbx
-def J_resourceSetupTool_init():
-    cmds.treeView( 'J_loadCache_TreeView', edit=True, removeAll = True )
+def J_resourceSetupTool_init():    
     #读取一个目录，和下面的缓存
     inputFolder= cmds.fileDialog2(fileMode=2)
     if inputFolder!=None: 
@@ -33,18 +32,30 @@ def J_resourceSetupTool_init():
     else :
         print(u'未设置资产目录')
         return
+    
+def J_resourceSetupTool_loadFile(mode=0):
+    cmds.treeView( 'J_loadCache_TreeView', edit=True, removeAll = True )
+    inputFolder=cmds.textField('J_resourceSetupTool_abcPath',q=1,text=1)
+    assetsPath=cmds.textField('J_resourceSetupTool_assetsPath',q=1,text=1)
+    
     #搜多目录下的文件夹，创建ui，并读取缓存
     for item in os.listdir(inputFolder):
         if os.path.isdir(inputFolder+"/"+item):
             for item1 in os.listdir(inputFolder+"/"+item):
                 if item1.lower().endswith(".abc"):
-                    J_resourceSetupTool_addItem(inputFolder+"/"+item,item)
+                    J_resourceSetupTool_addItem(inputFolder+"/"+item,item,mode)
                     break
-def J_resourceSetupTool_addItem(cacheAssetPath,assetName,subPathName=['chr','prp']):
+
+def J_resourceSetupTool_addItem(cacheAssetPath,assetName,mode):
     #添加每个角色作为根目录    
     cacheFolderName=assetName
     refNodeName=assetName.split('@')[-1]
+    #每个文件都会对应生成两个资产条目，如果找不到文件，则置空，并提示
     cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(cacheFolderName, "") )
+    
+    cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(refNodeName+"@"+srfFilePath, cacheFolderName) )
+    cmds.treeView('J_loadCache_TreeView',edit=1, image=(refNodeName+"@"+srfFilePath, 1,'nClothDisplayCurrent.png') )
+    
     #assetName ：chr_yeChenZYZ@yeChenZYZRN 从中解析出角色名
     assetType=assetName.split('@')[0].split('_')[0]
     assetName=assetName.split('@')[0].split('_')[-1]
@@ -77,9 +88,9 @@ def J_resourceSetupTool_addItem(cacheAssetPath,assetName,subPathName=['chr','prp
     #如果找到模型文件，则添加子控件
         if os.path.isfile(srfFilePath):
         #添加绑定
-            cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(refNodeName+"@"+srfFilePath, cacheFolderName) )
+            
             #cmds.treeView('J_loadCache_TreeView',edit=1, image=(srfFilePath, 1,'createReference.png') )
-            cmds.treeView('J_loadCache_TreeView',edit=1, image=(refNodeName+"@"+srfFilePath, 1,'nClothDisplayCurrent.png') )
+            
     #查找"资产名_cfx"文件
     cfxFilePath=currentAsset+'/cfx/publish'
     if os.path.exists(cfxFilePath):
@@ -100,6 +111,8 @@ def J_resourceSetupTool_addItem(cacheAssetPath,assetName,subPathName=['chr','prp
     cmds.treeView('J_loadCache_TreeView',edit=1, image=(cacheFolderName, 1,iconList[fileFoundState]) )
     #cmds.treeView('J_loadCache_TreeView',edit=1, image=(assetName, 2,'createCache.png') )
     cmds.treeView('J_loadCache_TreeView',edit=1, pressCommand=[(1,J_resourceSetupTool_refFile) ])
+
+
 
 #按钮功能 文件存在则加载
 def J_resourceSetupTool_refFile(*args):

@@ -67,7 +67,7 @@ global proc J_resourceSetupTool()//Ö÷´°¿Ú
 }
 global proc J_resourceSetupTool_loadFile()
 {
-python("JpyModules.pipeline.J_resourceSetupTool.J_resourceSetupTool_init()");
+python("JpyModules.pipeline.J_resourceSetupTool.J_resourceSetupTool_loadFile()");
 }
 
 J_resourceSetupTool;
