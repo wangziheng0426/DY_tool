@@ -78,7 +78,7 @@ class J_meta():
         self.metaInfo['userInfo']={}
         if inputPath==projectPath:
             self.metaInfo['userInfo']={'charactorPath':'','propPath':'',\
-                'setPath':''}
+                'setPath':'','assetPath':''}
         #新建meta时创建uuid,记录文件绝对目录,工程目录,相对目录
         self.metaInfo['baseInfo']['uuid']=str(uuid.uuid1())
         self.metaInfo['baseInfo']['fullPath']=inputPath

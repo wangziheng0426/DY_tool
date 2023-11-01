@@ -21,7 +21,7 @@ global proc J_resourceSetupTool()//主窗口
         textField -text "资产路径" J_resourceSetupTool_assetsPath;
         textField -text "abc路径" J_resourceSetupTool_abcPath;
         button -l "加载镜头" -c  "J_resourceSetupTool_loadFile" J_rs_loadFile;
-        button -l "增加缓存资产" -c  "" J_rs_loadAsset;
+        button -l "清空列表" -c  "treeView -edit  -removeAll \"J_loadCache_TreeView\"" J_rs_loadAsset;
         button -l "读取所有缓存" -c  "J_resourceExporter_loadCache" J_rs_loadCache;
         formLayout -e
 			-attachForm  J_loadCache_TreeView "top" 2
@@ -59,7 +59,7 @@ global proc J_resourceSetupTool()//主窗口
 
     
     
-    python("JpyModules.pipeline.J_resourceSetupTool.J_resourceSetupTool_init()");
+    //python("JpyModules.pipeline.J_resourceSetupTool.J_resourceSetupTool_init()");
 
     python("JpyModules.public.J_deleteUnknownNode()");
     python("JpyModules.public.J_cleanVaccine_gene()");

@@ -46,7 +46,7 @@ def J_CFXWorkFlow_outAbcGeo():
                             if refFile.startswith(j_meta.metaInfo['baseInfo']['projectPath']+uv):
                                 asssetTypeName=uv.split('/')[-1]
                                 for ftItem in os.listdir(j_meta.metaInfo['baseInfo']['projectPath']+uv):
-                                    if refFile.find(ftItem)>-1:
+                                    if os.path.dirname(refFile).find(ftItem)>-1:
                                         assetName=ftItem
                 #   print asssetTypeName
                 if mitem.endswith('srfNUL'):
@@ -58,12 +58,8 @@ def J_CFXWorkFlow_outAbcGeo():
                 outPath+=asssetTypeName+'_'+assetName+"@"+refNode
         else:
             #如果选择的对象已经没有ref了，则通过节点名称分析，读取冒号前面的部分
-            #解析项目名称
-            
-            projName=''
-            projectRoot=re.search('/\w*/series',cmds.file(query=True,sceneName=True))
-            if projectRoot!=None:
-                projName= projectRoot.group().replace('/series',"").replace('/',"")    
+            #解析项目名称            
+            projName=os.path.basename(cmds.workspace(q=1,rd=1)[0:-1])
             outPath+=mitem.split(":")[0]
             cacheName=projName+'_'+mitem.replace(":","@")
         #如果是毛发曲线组，则输出曲线组的名称

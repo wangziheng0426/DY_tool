@@ -15,35 +15,33 @@ import JpyModules
 import xgenm.xgGlobal as xgg
 import xgenm as xg
 #相机导fbx
-def J_resourceSetupTool_init():    
-    #读取一个目录，和下面的缓存
+    
+def J_resourceSetupTool_loadFile():
+    #读取缓存目录
     inputFolder= cmds.fileDialog2(fileMode=2)
     if inputFolder!=None: 
         inputFolder=inputFolder[0]
     else:
         return
     cmds.textField('J_resourceSetupTool_abcPath',e=1,text=inputFolder)
-    #如果设置了资产目录则使用，未设置则先分析资产目录
+    #读取用户设置的资产目录
     assetsPath=cmds.textField('J_resourceSetupTool_assetsPath',q=1,text=1)
+    #如果目录不存在，则尝试加载工程的jmeta，从工程信息解析资产目录
     if not os.path.exists(assetsPath):
-        assetsPath =inputFolder.split('/series/')[0]+"/assets"        
-    if os.path.exists(assetsPath):
-        cmds.textField('J_resourceSetupTool_assetsPath',e=1,text=assetsPath)
-    else :
-        print(u'未设置资产目录')
+        j_meta=JpyModules.pipeline.J_meta(cmds.workspace(q=1,rd=1)[0:-1])
+        if j_meta.metaInfo['userInfo'].has_key('assetPath'):
+            if os.path.exists(j_meta.metaInfo['userInfo']['assetPath']):
+                assetsPath=j_meta.metaInfo['userInfo']['assetPath']    
+                cmds.textField('J_resourceSetupTool_assetsPath',e=1,text=assetsPath)
+    if not os.path.exists(assetsPath):
+        print(u'资产目录有误，或者不存在')
         return
-    
-def J_resourceSetupTool_loadFile(mode=0):
-    cmds.treeView( 'J_loadCache_TreeView', edit=True, removeAll = True )
-    inputFolder=cmds.textField('J_resourceSetupTool_abcPath',q=1,text=1)
-    assetsPath=cmds.textField('J_resourceSetupTool_assetsPath',q=1,text=1)
-    
-    #搜多目录下的文件夹，创建ui，并读取缓存
+    #搜目录下的文件夹，创建ui，并读取缓存,如果存在配套jcl，则优先读取jcl
     for item in os.listdir(inputFolder):
         if os.path.isdir(inputFolder+"/"+item):
             for item1 in os.listdir(inputFolder+"/"+item):
                 if item1.lower().endswith(".abc"):
-                    J_resourceSetupTool_addItem(inputFolder+"/"+item,item,mode)
+                    J_resourceSetupTool_addItem(inputFolder+"/"+item,item)
                     break
 
 def J_resourceSetupTool_addItem(cacheAssetPath,assetName,mode):
@@ -52,10 +50,6 @@ def J_resourceSetupTool_addItem(cacheAssetPath,assetName,mode):
     refNodeName=assetName.split('@')[-1]
     #每个文件都会对应生成两个资产条目，如果找不到文件，则置空，并提示
     cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(cacheFolderName, "") )
-    
-    cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(refNodeName+"@"+srfFilePath, cacheFolderName) )
-    cmds.treeView('J_loadCache_TreeView',edit=1, image=(refNodeName+"@"+srfFilePath, 1,'nClothDisplayCurrent.png') )
-    
     #assetName ：chr_yeChenZYZ@yeChenZYZRN 从中解析出角色名
     assetType=assetName.split('@')[0].split('_')[0]
     assetName=assetName.split('@')[0].split('_')[-1]
@@ -88,9 +82,9 @@ def J_resourceSetupTool_addItem(cacheAssetPath,assetName,mode):
     #如果找到模型文件，则添加子控件
         if os.path.isfile(srfFilePath):
         #添加绑定
-            
+            cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(refNodeName+"@"+srfFilePath, cacheFolderName) )
             #cmds.treeView('J_loadCache_TreeView',edit=1, image=(srfFilePath, 1,'createReference.png') )
-            
+            cmds.treeView('J_loadCache_TreeView',edit=1, image=(refNodeName+"@"+srfFilePath, 1,'nClothDisplayCurrent.png') )
     #查找"资产名_cfx"文件
     cfxFilePath=currentAsset+'/cfx/publish'
     if os.path.exists(cfxFilePath):
