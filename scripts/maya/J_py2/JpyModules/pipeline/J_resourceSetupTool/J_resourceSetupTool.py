@@ -10,13 +10,66 @@
 import maya.cmds as cmds
 import maya.mel as mel
 import maya.api.OpenMaya as om2
-import os
+import os,json
 import JpyModules
 import xgenm.xgGlobal as xgg
 import xgenm as xg
-#相机导fbx
+
+def J_resourceSetupTool_init():
+    cmds.treeView( 'J_loadCache_TreeView', edit=True, removeAll = True )
+    cmds.textField('J_resourceSetupTool_assetsPath',e=1,\
+            changeCommand=JpyModules.pipeline.J_resourceSetupTool.J_resourceSetupTool_saveSetting)
+    cmds.treeView('J_loadCache_TreeView',edit=1, contextMenuCommand=\
+                  JpyModules.pipeline.J_resourceSetupTool.J_projectManeger_popupMenuCommand )
+                #J_projectManeger_popupMenuCommand )
+    settingFilePath=mel.eval('getenv "MAYA_SCRIPT_PATH"').split(';')[1]+'/J_resourceSetupTool_setting.txt'
+    #右键菜单
+    popm=cmds.popupMenu(parent='J_loadCache_TreeView')
+    cmds.menuItem(parent=popm,label=u"添加资产文件" ,\
+                  c=JpyModules.pipeline.J_resourceSetupTool.J_resourceSetupTool_addTreeItem)
+    cmds.menuItem(parent=popm,label=u"删除资产",\
+                  c=JpyModules.pipeline.J_resourceSetupTool.J_resourceSetupTool_removeItem)
+
+    if os.path.exists(settingFilePath):
+        loadSettingFile=open(settingFilePath,'r')
+        sstr=loadSettingFile.readline()
+        loadSettingFile.close()
+        cmds.textField('J_resourceSetupTool_assetsPath',e=1,text=sstr)
+def J_resourceSetupTool_saveSetting(*arg):
     
+    assetsPath=cmds.textField('J_resourceSetupTool_assetsPath',q=1,text=1).replace('\\','/')
+    cmds.textField('J_resourceSetupTool_assetsPath',e=1,text=assetsPath)
+    settingFilePath=mel.eval('getenv "MAYA_SCRIPT_PATH"').split(';')[1]+'/J_resourceSetupTool_setting.txt'
+    
+    loadSettingFile=open(settingFilePath,'w')
+    loadSettingFile.write(assetsPath)
+    loadSettingFile.close()
+def J_projectManeger_popupMenuCommand(*arg):
+    cmds.treeView('J_loadCache_TreeView',e=1, clearSelection=1)
+    if cmds.treeView('J_loadCache_TreeView',q=1, itemExists=arg[0]):
+        cmds.treeView('J_loadCache_TreeView',e=1, selectItem=(arg[0],True))
+    return True
+def J_resourceSetupTool_removeItem(*arg):
+    sel=cmds.treeView('J_loadCache_TreeView',q=1, selectItem=1)  
+    if len(sel)>0:  
+        pitem=cmds.treeView('J_loadCache_TreeView',q=1, itemParent=sel[0] )
+        if pitem!='':
+            cmds.treeView('J_loadCache_TreeView',e=1, removeItem=sel[0] )
+def J_resourceSetupTool_addTreeItem(*arg):
+    sel=cmds.treeView('J_loadCache_TreeView',q=1, selectItem=1)  
+    if sel==None:return
+    if len(sel)>0:  
+        pitem=cmds.treeView('J_loadCache_TreeView',q=1, itemParent=sel[0] )
+        if pitem=='':
+            mayaFile= cmds.fileDialog2(fileMode=1)
+            if mayaFile!=None: 
+                mayaFile=mayaFile[0]
+            else:
+                return
+            cmds.treeView('J_loadCache_TreeView',e=1, addItem=(mayaFile, sel[0]) )
+
 def J_resourceSetupTool_loadFile():
+    cmds.treeView( 'J_loadCache_TreeView', edit=True, removeAll = True )
     #读取缓存目录
     inputFolder= cmds.fileDialog2(fileMode=2)
     if inputFolder!=None: 
@@ -44,75 +97,137 @@ def J_resourceSetupTool_loadFile():
                     J_resourceSetupTool_addItem(inputFolder+"/"+item,item)
                     break
 
-def J_resourceSetupTool_addItem(cacheAssetPath,assetName,mode):
+def J_resourceSetupTool_addItem(cacheAssetPath,cacheFolderName):
     #添加每个角色作为根目录    
-    cacheFolderName=assetName
-    refNodeName=assetName.split('@')[-1]
+    refNodeName=cacheFolderName.split('@')[-1]
     #每个文件都会对应生成两个资产条目，如果找不到文件，则置空，并提示
     cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(cacheFolderName, "") )
+    cmds.treeView('J_loadCache_TreeView',edit=1, image=(cacheFolderName, 1,'precompExportChecked.png') )
     #assetName ：chr_yeChenZYZ@yeChenZYZRN 从中解析出角色名
-    assetType=assetName.split('@')[0].split('_')[0]
-    assetName=assetName.split('@')[0].split('_')[-1]
+    assetType=cacheFolderName.split('@')[0].split('_')[0]
+    assetName=cacheFolderName.split('@')[0].split('_')[-1]
     fileFoundState=0
-    #先搜索模型文件和毛发文件
+    #新机制，先读取jcl文件，如果没有jcl或者jcl记录的文件不存在，则搜索资产目录
+    abcJcl='.jcl'
+    for fileItem in os.listdir(cacheAssetPath):
+        if fileItem.endswith('.jcl'):
+            ofile=open(cacheAssetPath+'/'+fileItem,'r')
+            abcJcl=json.load(ofile)
+            ofile.close()
+            break
+    #读取jcl中的字段，按照绑定目录查找
+    srfFile=abcJcl['0']['referenceFile'][0].lower().replace('rig','srf')
+    print srfFile
+    #如果不对，则尝试替换工程目录
+    if not os.path.exists(srfFile):
+        srfFile=srfFile.replace(abcJcl['settings']['projectPath'].lower(),cmds.workspace(q=1,rd=1)[0:-1].lower())
+    #如果还是找不到文件，则尝试替换后缀
+    if not os.path.exists(srfFile):
+        if srfFile.endswith('.mb'):
+            srfFile=srfFile[:-3]+'.ma'
+        else:
+            srfFile=srfFile[:-3]+'.mb'   
+    cfxFile=abcJcl['0']['referenceFile'][0].lower().replace('rig','cfx')
+    if not os.path.exists(srfFile):
+        cfxFile=cfxFile.replace(abcJcl['settings']['projectPath'].lower(),cmds.workspace(q=1,rd=1)[0:-1].lower())
+    if not os.path.exists(cfxFile):
+        if cfxFile.endswith('.mb'):
+            cfxFile=cfxFile[:-3]+'.ma'
+        else:
+            cfxFile=cfxFile[:-3]+'.mb'  
+    #如果根据jcl找不到文件，则从窗口设置的目录中搜索
     assetsPath=cmds.textField('J_resourceSetupTool_assetsPath',q=1,text=1)
-    #仅搜索chr文件夹和prp文件夹
-    currentAsset=''
-    if not os.path.exists(assetsPath):
-        print(u'未找到资产目录')
 
-    if os.path.exists(assetsPath+"/"+assetType):
-        #查找所有资产文件夹
-        for fItem in os.listdir(assetsPath+"/"+assetType):
-            #判断是资产目录
-            if os.path.isdir(assetsPath+"/"+assetType+'/'+fItem):
-                #资产目录名与缓存文件夹一致
-                if fItem==assetName:
-                    currentAsset=assetsPath+"/"+assetType+'/'+fItem
-    #查找"资产名_srf"文件
-    srfFilePath=currentAsset+'/srf/publish'
     
-    if os.path.exists(srfFilePath):
-        for fItem1 in os.listdir(srfFilePath):
-            if fItem1.endswith('.ma') or fItem1.endswith('.mb') :
-                if os.path.splitext(fItem1)[0]==assetName+'_srf':
-                    srfFilePath=srfFilePath+'/'+fItem1
-                    fileFoundState=1
+    if not os.path.exists(assetsPath):
+        print(u'资产目录不存在，或者设置有误')
+    
+    #先找当前资产目录
+    currentAssetPath=''
+    #搜索资产目录下的文件，为了防止文件过多等待过久，仅向下找两层
+    found=0
+    for dirItem in os.listdir(assetsPath):
+        if dirItem==assetName:
+            currentAssetPath=(assetsPath+'/'+dirItem).lower()
+            break
+        if os.path.isdir(assetsPath+'/'+dirItem):
+            for dirItem1 in os.listdir(assetsPath+'/'+dirItem):
+            #资产目录名与缓存文件夹一致
+                if dirItem1==assetName:
+                    currentAssetPath=(assetsPath+'/'+dirItem+'/'+dirItem1).lower()
+                    found=1
                     break
-    #如果找到模型文件，则添加子控件
-        if os.path.isfile(srfFilePath):
-        #添加绑定
-            cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(refNodeName+"@"+srfFilePath, cacheFolderName) )
-            #cmds.treeView('J_loadCache_TreeView',edit=1, image=(srfFilePath, 1,'createReference.png') )
-            cmds.treeView('J_loadCache_TreeView',edit=1, image=(refNodeName+"@"+srfFilePath, 1,'nClothDisplayCurrent.png') )
-    #查找"资产名_cfx"文件
-    cfxFilePath=currentAsset+'/cfx/publish'
-    if os.path.exists(cfxFilePath):
-        for fItem1 in os.listdir(cfxFilePath):
-            if fItem1.endswith('.ma') or fItem1.endswith('.mb') :
-                if os.path.splitext(fItem1)[0]==assetName+'_cfx':
-                    cfxFilePath=cfxFilePath+'/'+fItem1
-                    fileFoundState=1
-                    break
-    #如果找到模型文件，则添加子控件
-        if os.path.isfile(cfxFilePath):
-            cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(refNodeName+"@"+cfxFilePath, cacheFolderName) )
-            #cmds.treeView('J_loadCache_TreeView',edit=1, image=(cfxFilePath, 1,'createReference.png') )
-            cmds.treeView('J_loadCache_TreeView',edit=1, image=(refNodeName+"@"+cfxFilePath, 1,'hairConvertHairSystem.png') )
+        if found:
+            break
+    
+    
+    #如果之前通过jcl没找到，则从当前资产文件夹里寻找"_srf"文件,如果文件夹中有多个同名srf，只读取第一个
+    if not os.path.exists(srfFile):
+        for root,dirs,files in os.walk(currentAssetPath):
+            for item in files:
+                if os.path.splitext(item)[0]==assetName+"_srf":
+                    if item.endswith('.ma') or item.endswith('.mb'):
+                        srfFile=(root.replace('\\','/')+'/'+item).lower()
+                        
+                        break
+        print (assetName+u"缓存文件中资产信息无效，自动识别："+srfFile)                
+    #找毛发cfx文件
+    if not os.path.exists(cfxFile):
+        for root,dirs,files in os.walk(currentAssetPath):
+            for item in files:
+                if os.path.splitext(item)[0]==assetName+"_cfx":
+                    if item.endswith('.ma') or item.endswith('.mb'):
+                        cfxFile=(root.replace('\\','/')+'/'+item).lower()
+                        
+                        break
+        print (assetName+u"缓存文件中资产信息无效，自动识别："+cfxFile)
+    #如果没找到模型文件，则创建站位名称
+    srfstate='nClothDisplayCurrent.png'
+    cfxstate='hairConvertHairSystem.png'
+    if not os.path.exists(srfFile):
+        srfFile=assetName+"_srfFile"
+        srfstate='error.png'
+    if not os.path.exists(cfxFile):
+        cfxFile=assetName+"_cfxFile"
+        cfxstate='error.png'
+    #添加绑定
+    cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(srfFile, cacheFolderName) )
+    #cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(srfFile, srfFile) )
+    cmds.treeView('J_loadCache_TreeView',edit=1, image=(srfFile, 1,srfstate) )
 
+    #cfx动力学
+    
+    cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(cfxFile, cacheFolderName) )
+    #cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(cfxFile, cfxFile) )
+    cmds.treeView('J_loadCache_TreeView',edit=1, image=(cfxFile, 1,cfxstate) )
+    
     #设置按钮显示状态
-    iconList=['error.png','precompExportChecked.png']
-    cmds.treeView('J_loadCache_TreeView',edit=1, image=(cacheFolderName, 1,iconList[fileFoundState]) )
-    #cmds.treeView('J_loadCache_TreeView',edit=1, image=(assetName, 2,'createCache.png') )
+    #'error.png','precompExportChecked.png'
     cmds.treeView('J_loadCache_TreeView',edit=1, pressCommand=[(1,J_resourceSetupTool_refFile) ])
+    #cmds.treeView('J_loadCache_TreeView',edit=1, itemRenamedCommand=\
+                  #JpyModules.pipeline.J_resourceSetupTool.J_resourceSetupTool_resetTreeItem)
 
-
-
+def J_resourceSetupTool_resetTreeItem(*args):
+    pitem=cmds.treeView('J_loadCache_TreeView',q=1, itemParent=args[0] )
+    if  pitem!='':
+        print pitem
+        '''
+        if os.path.exists(args[1]):
+            cmds.treeView('J_loadCache_TreeView',e=1, removeItem=args[0] )
+            cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(args[1], pitem) )
+            if args[1].replace('\\','/').endswith('_srf.mb') or args[1].endswith('_srf.ma'):
+                cmds.treeView('J_loadCache_TreeView',edit=1, image=(args[1], 1,'nClothDisplayCurrent.png') )
+            if args[1].replace('\\','/').endswith('_cfx.mb') or args[1].endswith('_cfx.ma'):
+                cmds.treeView('J_loadCache_TreeView',edit=1, image=(args[1], 1,'hairConvertHairSystem.png') )    
+        else:
+            cmds.treeView('J_loadCache_TreeView',edit=1, image=(args[1], 1,'error.png') )   
+        '''
 #按钮功能 文件存在则加载
 def J_resourceSetupTool_refFile(*args):
     itemInfo=cmds.treeView('J_loadCache_TreeView',q=1,children=args[0])
     
     for item in itemInfo:
+        print item
         fileName=os.path.splitext(os.path.basename(item.split('@')[-1]))[0]
 
         if os.path.exists(item.split('@')[-1])  :        
@@ -133,11 +248,11 @@ def J_resourceSetupTool_refFile(*args):
             simAbcFile=''
             for fItem1 in os.listdir(abcPath):
                 #将abc缓存merge到模型
-                if fItem1.endswith('_ani.abc') and fItem1.find(fileName.replace('_srf','_ani'))>-1 :
+                if fItem1.endswith('_ani.abc') and fItem1.lower().find(fileName.replace('_srf','_ani'))>-1 :
                     animAbcfile=abcPath+"/"+fItem1
                     #print animAbcfile
                     cmds.AbcImport(abcPath+"/"+fItem1 ,mode= 'import' ,connect =(modelNameSpace+":srfNUL"),createIfNotFound=1)
-                if fItem1.endswith('_sim.abc') and fItem1.find(fileName.replace('_cfx','_sim'))>-1 :
+                if fItem1.endswith('_sim.abc') and fItem1.lower().find(fileName.replace('_cfx','_sim'))>-1 :
                     simAbcFile=abcPath+"/"+fItem1
                     #print simAbcFile
                     cmds.AbcImport(abcPath+"/"+fItem1 ,mode= 'import' ,connect =(modelNameSpace+":simNUL"),createIfNotFound=1)
@@ -165,7 +280,6 @@ def J_resourceSetupTool_refFile(*args):
             print (u'未找到资产：'+item.split('@')[-1])
         
 
-def J_resourceSetupTool_saveSetting():
-    pass
+
 if __name__=='__main__':
-    J_resourceSetupTool_init()
+    J_resourceSetupTool_loadFile()

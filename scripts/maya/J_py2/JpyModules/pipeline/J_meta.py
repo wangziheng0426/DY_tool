@@ -69,7 +69,7 @@ class J_meta():
                 self.J_loadMeta() 
         else:
             print (inputPath+u':不存在')
-        print (self.metaPath)
+        #print (self.metaPath)
     #创建jmeta文件
     def J_createMeta(self,inputPath,projectPath):    
         self.metaInfo['baseInfo']={'uuid':'','user':mel.eval('getenv "USERNAME"'),'fullPath':'',\

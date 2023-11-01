@@ -65,7 +65,7 @@ def J_CFXWorkFlow_outAbcGeo():
         #如果是毛发曲线组，则输出曲线组的名称
         if mitem.find('_OutputCurves')>-1:
             cacheName=mitem.replace(":","@")
-        print (u'输出缓存：'+outPath+"/"+cacheName)
+        print (u'输出'+mitem+u'缓存：'+outPath+"/"+cacheName)
         JpyModules.public.J_exportAbc(mode=0,exportMat=0,
                 nodesToExport=[mitem],cacheFileName=cacheName,
                 j_abcCachePath=outPath)
