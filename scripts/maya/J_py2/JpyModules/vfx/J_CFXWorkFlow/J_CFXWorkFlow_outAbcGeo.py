@@ -62,6 +62,10 @@ def J_CFXWorkFlow_outAbcGeo():
             projName=os.path.basename(cmds.workspace(q=1,rd=1)[0:-1])
             outPath+=mitem.split(":")[0]
             cacheName=projName+'_'+mitem.replace(":","@")
+            if cacheName.endswith('srfNUL'):
+                cacheName='@'.join(cacheName.split('@')[0:-1])+"_ani"
+            elif cacheName.endswith('simNUL'):
+                cacheName='@'.join(cacheName.split('@')[0:-1])+"_sim"
         #如果是毛发曲线组，则输出曲线组的名称
         if mitem.find('_OutputCurves')>-1:
             cacheName=mitem.replace(":","@")
