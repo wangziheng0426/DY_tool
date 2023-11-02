@@ -69,5 +69,3 @@ global proc J_resourceSetupTool_loadFile()
 {
 python("JpyModules.pipeline.J_resourceSetupTool.J_resourceSetupTool_loadFile()");
 }
-
-J_resourceSetupTool;
