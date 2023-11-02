@@ -117,7 +117,10 @@ def J_resourceSetupTool_addItem(cacheAssetPath,cacheFolderName):
             break
     #读取jcl中的字段，按照绑定目录查找
     srfFile=abcJcl['0']['referenceFile'][0].lower().replace('rig','srf')
-    print srfFile
+    #设置帧率，时间线
+    cmds.currentUnit(time=abcJcl["settings"]["frameRate"])
+    cmds.playbackOptions(minTime=abcJcl["settings"]["frameRange"][0])
+    cmds.playbackOptions(maxTime=abcJcl["settings"]["frameRange"][1])
     #如果不对，则尝试替换工程目录
     if not os.path.exists(srfFile):
         srfFile=srfFile.replace(abcJcl['settings']['projectPath'].lower(),cmds.workspace(q=1,rd=1)[0:-1].lower())
@@ -251,11 +254,11 @@ def J_resourceSetupTool_refFile(*args):
                 if fItem1.endswith('_ani.abc') and fItem1.lower().find(fileName.replace('_srf','_ani'))>-1 :
                     animAbcfile=abcPath+"/"+fItem1
                     #print animAbcfile
-                    cmds.AbcImport(abcPath+"/"+fItem1 ,mode= 'import' ,connect =(modelNameSpace+":srfNUL"),createIfNotFound=1)
+                    cmds.AbcImport(animAbcfile ,mode= 'import' ,connect =(modelNameSpace+":srfNUL"),createIfNotFound=1)
                 if fItem1.endswith('_sim.abc') and fItem1.lower().find(fileName.replace('_cfx','_sim'))>-1 :
                     simAbcFile=abcPath+"/"+fItem1
                     #print simAbcFile
-                    cmds.AbcImport(abcPath+"/"+fItem1 ,mode= 'import' ,connect =(modelNameSpace+":simNUL"),createIfNotFound=1)
+                    cmds.AbcImport(simAbcFile,mode= 'import' ,connect =(modelNameSpace+":simNUL"),createIfNotFound=1)
             #自动加载xgen曲线
             if xgg.Maya:
                 palettes = xg.palettes()
