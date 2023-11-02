@@ -51,7 +51,7 @@ def compressFileSeqTovideo(compressPath,fileList=[],frameRate=24,waterMark='',ou
     compressFile.close()
 
     #ffmpeg路径
-    ffmpegPath= __file__.split('/scripts/maya')[0]+'/other/thirdParty/ffmpeg.exe'
+    ffmpegPath= __file__.split('/scripts/maya')[0]+'/thirdParty/ffmpeg.exe'
     #ffmpegPath='c:/ffmpeg.exe'
     if not os.path.exists(ffmpegPath):
         print ("ffmpeg is missing!")
