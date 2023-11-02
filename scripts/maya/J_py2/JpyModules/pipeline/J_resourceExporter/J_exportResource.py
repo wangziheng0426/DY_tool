@@ -67,18 +67,31 @@ def J_animationExportCamera2Abc(camera):
 #根据reference导出abc    
 def J_exportAnimationFromRefToAbc(refNode,filter=['srfNUL']):
     refFile=cmds.referenceQuery(refNode,filename=1 )
-    finalOutPath=JpyModules.public.J_getMayaFileFolder()+"/cache"
-    assetName=J_analysisAssetsName(refFile)
-    finalOutPath+='/'+assetName+"@"+refNode
-    cacheNameTemp=''
-    projectRoot=re.search('/\w*/assets',refFile)
-    if projectRoot!=None:
-        cacheNameTemp= projectRoot.group().replace('/assets',"").replace('/',"")+'_'
-    else :
-        print (u"未找到工程根目录，可能资产不在assets文件夹下，请核对")
+    outPath=JpyModules.public.J_getMayaFileFolder()+"/cache/"
+    if os.path.exists(refFile):
+        #新版根据meta解析资产并输出日志,如果存在meta，则使用meta的数据
+        projName=os.path.basename(cmds.workspace(q=1,rd=1)[0:-1])
+        asssetTypeName=''
+        assetName=os.path.splitext(os.path.basename(refFile))[0]
+        #找工程目录下的jmeta
+        j_meta=JpyModules.pipeline.J_meta(cmds.workspace(q=1,rd=1)[0:-1])
+        if len(j_meta.metaInfo)>0 :
+            if j_meta.metaInfo.has_key('baseInfo'):
+                if j_meta.metaInfo['baseInfo'].has_key('projectPath'):
+                    projName=os.path.splitext(os.path.basename(j_meta.metaInfo['baseInfo']['projectPath']))[0]
+            if j_meta.metaInfo.has_key('userInfo'):
+                for uk,uv in j_meta.metaInfo['userInfo'].items():
+                    if refFile.startswith(j_meta.metaInfo['baseInfo']['projectPath']+uv):
+                        asssetTypeName=uv.split('/')[-1]
+                        for ftItem in os.listdir(j_meta.metaInfo['baseInfo']['projectPath']+uv):
+                            if os.path.dirname(refFile).find(ftItem)>-1:
+                                assetName=ftItem
 
-    cacheNameTemp+=assetName+"_ani"
-    print (finalOutPath+"///"+cacheNameTemp)
+        cacheName=projName+'_' +asssetTypeName+'_'+assetName+"_ani"
+        outPath+=asssetTypeName+'_'+assetName+"@"+refNode
+
+    if not os.path.exists(outPath):
+        os.makedirs(outPath)
     templist=[]
     #按过滤器查找要导出的节点,如果没有符合的节点,则导出选择的对象
     for itema in cmds.referenceQuery(refNode,nodes=1):
@@ -88,8 +101,8 @@ def J_exportAnimationFromRefToAbc(refNode,filter=['srfNUL']):
 
     JpyModules.public.J_exportAbc(mode=0,exportMat=False,
                                   nodesToExport=templist,
-                                  cacheFileName=cacheNameTemp,
-                                  j_abcCachePath=finalOutPath)
+                                  cacheFileName=cacheName,
+                                  j_abcCachePath=outPath)
 
 #根据reference导出fbx，param ：1 ref节点名  2是否单独导出表情  3仅导出骨骼动画
 def J_exportAnimationFromRefNodeToFbx(refNode,jointOnly=False): 
@@ -360,8 +373,9 @@ def J_analysisCamName():
     
     return res.replace('/','') 
 #解析项目名称
-def J_analysisAssetsName(fileFullName):    
+def J_analysisAssetsName(inFileName):    
     #分析角色名，如果失败，则返回文件名
+    '''
     if os.path.exists(fileFullName):
         chName=re.search('[a-zA-Z]*/\w*/rig/',fileFullName,re.IGNORECASE)
         if chName!=None:
@@ -371,8 +385,20 @@ def J_analysisAssetsName(fileFullName):
     else:
         print (u'文件不存在，请核实')
         return ('none_temp')
-
-
+    '''
+    assetName=os.path.splitext(os.path.basename(inFileName))[0]
+    if assetName.lower().endswith('_rig'):
+        assetName=assetName[:-4]
+    #找工程目录下的jmeta
+    j_meta=JpyModules.pipeline.J_meta(cmds.workspace(q=1,rd=1)[0:-1])
+    if len(j_meta.metaInfo)>0 :
+        if j_meta.metaInfo.has_key('userInfo'):
+            for uk,uv in j_meta.metaInfo['userInfo'].items():
+                if inFileName.startswith(j_meta.metaInfo['baseInfo']['projectPath']+uv):
+                    for ftItem in os.listdir(j_meta.metaInfo['baseInfo']['projectPath']+uv):
+                        if os.path.dirname(inFileName).find(ftItem)>-1:
+                            assetName=ftItem
+    return assetName
 #maya导出的fbx会自动添加subdeformer字段，强制擦除
 def J_replaceSubdeformer(fbxFile):
     filep=open(fbxFile,'r')
