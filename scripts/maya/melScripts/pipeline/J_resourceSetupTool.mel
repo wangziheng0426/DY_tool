@@ -12,7 +12,7 @@ global proc J_resourceSetupTool()//主窗口
 {
     if (`window -ex J_resourceSetupTool`)
         deleteUI -window J_resourceSetupTool;
-    window -w 300 -h 400 -title "资产管理" J_resourceSetupTool;
+    window -w 300 -h 400 -title "资产整合" J_resourceSetupTool;
     string $geoSettingCheckBox[];
     formLayout  -numberOfDivisions 100  J_resourceSetupTool_FromLayout0;
         formLayout  -numberOfDivisions 100  J_resourceSetupTool_FromLayout1;

@@ -188,10 +188,10 @@ def J_resourceSetupTool_addItem(cacheAssetPath,cacheFolderName):
     srfstate='nClothDisplayCurrent.png'
     cfxstate='hairConvertHairSystem.png'
     if not os.path.exists(srfFile):
-        srfFile=assetName+"_srfFile"
+        srfFile=cacheFolderName+"_srfFile"
         srfstate='error.png'
     if not os.path.exists(cfxFile):
-        cfxFile=assetName+"_cfxFile"
+        cfxFile=cacheFolderName+"_cfxFile"
         cfxstate='error.png'
     #添加绑定
     cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(srfFile, cacheFolderName) )
