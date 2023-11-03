@@ -1,19 +1,19 @@
 /////////////////////////////////////////////////////////////
 ///\file  J_playBlastTool.mel
-///\brief  ÅÄÆÁ¹¤¾ß
+///\brief  æ‹å±å·¥å…·
 ///
-///\author ½Û
+///\author æ¡”
 ///\version 1.0
 ///\date   2020-2-4
 ///History:  
 ///
 ///////////////////////////////////////////////////////////////
 
-///´ò¿ªÖ÷½çÃæ´°¿Ú
+///æ‰“å¼€ä¸»ç•Œé¢çª—å£
 ///\return "success";
-global proc string J_playBlastTool()//ÅÄÆÁ¹¤¾ß
+global proc string J_playBlastTool()//æ‹å±å·¥å…·
 {
-    string $HUDListName[]={"Ö¡ĞÅÏ¢","ÉãÏñ»ú","½¹¾à","ÓÃ»§","¹¤³Ì","ÈÕÆÚ","×´Ì¬","³ß´ç","ÎÄ¼şÃû"};
+    string $HUDListName[]={"å¸§ä¿¡æ¯","æ‘„åƒæœº","ç„¦è·","ç”¨æˆ·","å·¥ç¨‹","æ—¥æœŸ","çŠ¶æ€","å°ºå¯¸","æ–‡ä»¶å"};
     string $HUDListTitle[]={"frameInfo","cameraName","focalLength","username",
                         "projectPath","date","status","imageSize","fileName"};
                        
@@ -22,10 +22,10 @@ global proc string J_playBlastTool()//ÅÄÆÁ¹¤¾ß
     string $J_HUDCheckTextField[];
     if (`window -ex J_playBlastWin`)
         deleteUI -window J_playBlastWin;
-        window -w 300 -h (size($HUDListName)*2+200) -title "ÅÄÆÁ¹¤¾ß" J_playBlastWin;
+        window -w 300 -h (size($HUDListName)*2+200) -title "æ‹å±å·¥å…·" J_playBlastWin;
         formLayout -nd 100 J_playBlastMainFormLayout ;
-        //hudÑ¡Ïî½çÃæ
-            frameLayout -cll 1 -cl 0 -l "HUDÑ¡Ïî"  J_playBlastHUDFrameLayOut;
+        //hudé€‰é¡¹ç•Œé¢
+            frameLayout -cll 1 -cl 0 -l "HUDé€‰é¡¹"  J_playBlastHUDFrameLayOut;
                 formLayout  -nd 100  -h (size($HUDListName)*20) J_playBlastHUDFormLayOut;        
                 for($i=0;$i<size($HUDListName);$i++)
                 {
@@ -42,16 +42,16 @@ global proc string J_playBlastTool()//ÅÄÆÁ¹¤¾ß
                 }
                 setParent ..; 
             setParent ..; 
-        //°´Å¥ÉãÏñ»úÑ¡Ïî
-            frameLayout -cll 1 -cl 0  -l "ÉãÏñ»úĞÅÏ¢"  J_playBlastCamFrameLayOut;
+        //æŒ‰é’®æ‘„åƒæœºé€‰é¡¹
+            frameLayout -cll 1 -cl 0  -l "æ‘„åƒæœºä¿¡æ¯"  J_playBlastCamFrameLayOut;
                 formLayout  -nd 100  J_playBlastCamFormLayOut;        
                 textScrollList -sc "J_playBlastTool_selectCam()" -h 120 -allowMultiSelection 1 J_playBlastCameraList;
-                button  -h 27 -label "Ìí¼ÓÉãÏñ»úĞÅÏ¢" -command "J_playBlastAddCamInfo" J_playBlastAddCamInfoBu;
-                button  -h 27 -label "Ëø¶¨ÉãÏñ»ú" -command "J_playBlastLockCam" J_playBlastLockCamBu;
-                button  -h 27 -label "ÏÔÊ¾HUD" -command "J_playBlast_showHUD" J_playBlastShowHudBu;
-                button  -h 27 -label "×Ô¶¨ÒåHUD0" -command "J_playBlast_showHUD_0" J_playBlastShowHudBu_0;
-                button  -h 27 -label "×Ô¶¨ÒåHUD1" -command "J_playBlast_showHUD_1" J_playBlastShowHudBu_1;
-                button  -h 27 -label "³ß´çÇĞ»»" -command "J_playBlast_changeSize" J_playBlastSwithSizeBu;
+                button  -h 27 -label "æ·»åŠ æ‘„åƒæœºä¿¡æ¯" -command "J_playBlastAddCamInfo" J_playBlastAddCamInfoBu;
+                button  -h 27 -label "é”å®šæ‘„åƒæœº" -command "J_playBlastLockCam" J_playBlastLockCamBu;
+                button  -h 27 -label "æ˜¾ç¤ºHUD" -command "J_playBlast_showHUD" J_playBlastShowHudBu;
+                button  -h 27 -label "è‡ªå®šä¹‰HUD0" -command "J_playBlast_showHUD_0" J_playBlastShowHudBu_0;
+                button  -h 27 -label "è‡ªå®šä¹‰HUD1" -command "J_playBlast_showHUD_1" J_playBlastShowHudBu_1;
+                button  -h 27 -label "å°ºå¯¸åˆ‡æ¢" -command "J_playBlast_changeSize" J_playBlastSwithSizeBu;
                 formLayout -e 
                     -af J_playBlastCameraList left 4
                     -af J_playBlastCameraList top 3
@@ -85,24 +85,28 @@ global proc string J_playBlastTool()//ÅÄÆÁ¹¤¾ß
 
                 setParent ..; 
             setParent ..;
-           //ÅÄÆÁÑ¡Ïî
-            frameLayout -cll 1 -cl 0  -l "ÅÄÆÁĞÅÏ¢"  J_playBlastPBFrameLayOut;
+           //æ‹å±é€‰é¡¹
+            frameLayout -cll 1 -cl 0  -l "æ‹å±ä¿¡æ¯"  J_playBlastPBFrameLayOut;
                 formLayout  -nd 100  J_playBlastPBFormLayOut;        
-                checkBox -l  "Ë®Ó¡" -onCommand ("J_playBlast_loadLogo(\"J_playBlastWaterMarkCheckBox\")") J_playBlastWaterMarkCheckBox;
-
-                button -h 36 -label "ÅÄÆÁ" -command "J_playBlastOutPut" J_playBlastRunPBBu;
-                button -h 36 -label "äÖÈ¾Ô¤ÀÀ" -command "J_playRenderOutPut" J_playBlastRenderBu;
+                checkBox -l  "æ°´å°" -onCommand ("J_playBlast_loadLogo(\"J_playBlastWaterMarkCheckBox\")") J_playBlastWaterMarkCheckBox;
+                checkBox -l  "éŸ³é¢‘" -onCommand ("J_playBlast_loadLogo(\"J_playBlastAudioCheckBox\")") J_playBlastAudioCheckBox;
+                button -h 36 -label "æ‹å±" -command "J_playBlastOutPut" J_playBlastRunPBBu;
+                button -h 36 -label "æ¸²æŸ“é¢„è§ˆ" -command "J_playRenderOutPut" J_playBlastRenderBu;
                 formLayout -e 
                     -af J_playBlastWaterMarkCheckBox left 4
                     -af J_playBlastWaterMarkCheckBox top 3
                     -ap J_playBlastWaterMarkCheckBox right 0 98
                     
+                    -ap J_playBlastAudioCheckBox left 0 1 
+                    -ac J_playBlastAudioCheckBox top 3 J_playBlastWaterMarkCheckBox
+                    -ap J_playBlastAudioCheckBox right 0 98
+
                     -ap J_playBlastRunPBBu left 0 1 
-                    -ac J_playBlastRunPBBu top 3 J_playBlastWaterMarkCheckBox
+                    -ac J_playBlastRunPBBu top 3 J_playBlastAudioCheckBox
                     -ap J_playBlastRunPBBu right 0 49
 
                     -ap J_playBlastRenderBu left 0 50 
-                    -ac J_playBlastRenderBu top 3 J_playBlastWaterMarkCheckBox
+                    -ac J_playBlastRenderBu top 3 J_playBlastAudioCheckBox
                     -ap J_playBlastRenderBu right 0 99
 
                 J_playBlastPBFormLayOut;
@@ -126,12 +130,12 @@ global proc string J_playBlastTool()//ÅÄÆÁ¹¤¾ß
     python("JpyModules.animation.J_playBlast.J_playBlast_uiInit()");
     return "success";
 }
-//Ìí¼ÓÉãÏñ»úĞÅÏ¢
+//æ·»åŠ æ‘„åƒæœºä¿¡æ¯
 global proc J_playBlastAddCamInfo()
 {
     python("JpyModules.animation.J_playBlast.J_playBlast_addCamInfo()");
 }
-//ËøÏà»ú
+//é”ç›¸æœº
 global proc J_playBlastLockCam()
 {
     python("JpyModules.animation.J_playBlast.J_playBlast_lockCam()");
@@ -151,7 +155,8 @@ global proc J_playBlast_showHUD()
 }
 global proc J_playBlast_loadLogo(string $checkBoxItem)
 {
-    string $file[]=`fileDialog2 -fileMode 1 -fileFilter "PIC Files (*.png *.jpg *.jpeg)"`;
+    string $file[]=`fileDialog2 -fileMode 1 -fileFilter "Pic&Wav (*.png *.jpg *.jpeg *.wav *.mp3)"`;
+    if (size($file)>0)
     checkBox -e -l $file[0] $checkBoxItem;
 }
 
@@ -164,14 +169,14 @@ global proc J_playBlast_showHUD_0()
     {
         delete `listRelatives -p $J_hudNodes`;
     }
-    string $J_hudNodes[]=`ls -type J_hud`;
+    $J_hudNodes=`ls -type J_hud`;
     if (size($J_hudNodes)>0)
     {
         delete `listRelatives -p $J_hudNodes`;
     }
     else
     {
-    string $hunNode=`createNode "J_hud"`;
+    createNode "J_hud";
     }
 }
 global proc J_playBlast_showHUD_1()
@@ -183,7 +188,7 @@ global proc J_playBlast_showHUD_1()
     {
         delete `listRelatives -p $J_hudNodes`;
     }
-    string $J_hudNodes[]=`ls -type J_hud_a`;
+    $J_hudNodes=`ls -type J_hud_a`;
     if (size($J_hudNodes)>0)
     {
         delete `listRelatives -p $J_hudNodes`;
@@ -195,7 +200,7 @@ global proc J_playBlast_showHUD_1()
 }
 global proc J_playBlastOutPut()
 {
-    //»ñÈ¡ºá×İ±È
+    //è·å–æ¨ªçºµæ¯”
     python("items=cmds.formLayout('J_playBlastHUDFormLayOut',query=True,childArray=True )");
     int $res[]={(int)python("cmds.textField(items[15],query=True,text=True).split('/')[0]")
     ,(int)python("cmds.textField(items[15],query=True,text=True).split('/')[1]")};
@@ -204,8 +209,13 @@ global proc J_playBlastOutPut()
     {
         $waterMark=`checkBox -q  -label "J_playBlastWaterMarkCheckBox"`;
     }
-        
-    string $temp="JpyModules.animation.J_playBlast.J_playBlast_outPut(res=["+$res[0]+","+$res[1]+"],waterMark='"+$waterMark+"')";
+    string $audio="";
+    if (`checkBox -q  -value "J_playBlastAudioCheckBox"`)
+    {
+        $audio=`checkBox -q  -label "J_playBlastAudioCheckBox"`;
+    } 
+    string $temp="JpyModules.animation.J_playBlast.J_playBlast_outPut(res=["+$res[0]+","+$res[1]+"],waterMark='"+$waterMark+"',audio=\""+$audio+"\")";
+    //print $temp;
     python($temp);
 }
 global proc J_playRenderOutPut()
