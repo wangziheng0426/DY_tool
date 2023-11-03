@@ -18,32 +18,28 @@ import xgenm as xg
 def J_resourceSetupTool_init():
     cmds.treeView( 'J_loadCache_TreeView', edit=True, removeAll = True )
     cmds.textField('J_resourceSetupTool_assetsPath',e=1,\
-            changeCommand=JpyModules.pipeline.J_resourceSetupTool.J_resourceSetupTool_saveSetting)
+            changeCommand=JpyModules.pipeline.J_resourceSetupTool.J_resourceSetupTool_changeSetting)
     cmds.treeView('J_loadCache_TreeView',edit=1, contextMenuCommand=\
                   JpyModules.pipeline.J_resourceSetupTool.J_projectManeger_popupMenuCommand )
                 #J_projectManeger_popupMenuCommand )
-    settingFilePath=mel.eval('getenv "MAYA_SCRIPT_PATH"').split(';')[1]+'/J_resourceSetupTool_setting.txt'
+    
     #右键菜单
     popm=cmds.popupMenu(parent='J_loadCache_TreeView')
     cmds.menuItem(parent=popm,label=u"添加资产文件" ,\
                   c=JpyModules.pipeline.J_resourceSetupTool.J_resourceSetupTool_addTreeItem)
     cmds.menuItem(parent=popm,label=u"删除资产",\
                   c=JpyModules.pipeline.J_resourceSetupTool.J_resourceSetupTool_removeItem)
-
-    if os.path.exists(settingFilePath):
-        loadSettingFile=open(settingFilePath,'r')
-        sstr=loadSettingFile.readline()
-        loadSettingFile.close()
-        cmds.textField('J_resourceSetupTool_assetsPath',e=1,text=sstr)
-def J_resourceSetupTool_saveSetting(*arg):
     
+    j_meta=JpyModules.pipeline.J_meta(cmds.workspace(q=1,rd=1)[0:-1],cmds.workspace(q=1,rd=1)[0:-1])
+    if j_meta.metaInfo["userInfo"].has_key('assetPath'):        
+        cmds.textField('J_resourceSetupTool_assetsPath',e=1,\
+                       text=(cmds.workspace(q=1,rd=1)[0:-1]+j_meta.metaInfo["userInfo"]['assetPath']))
+
+def J_resourceSetupTool_changeSetting(*arg):
     assetsPath=cmds.textField('J_resourceSetupTool_assetsPath',q=1,text=1).replace('\\','/')
     cmds.textField('J_resourceSetupTool_assetsPath',e=1,text=assetsPath)
-    settingFilePath=mel.eval('getenv "MAYA_SCRIPT_PATH"').split(';')[1]+'/J_resourceSetupTool_setting.txt'
+   
     
-    loadSettingFile=open(settingFilePath,'w')
-    loadSettingFile.write(assetsPath)
-    loadSettingFile.close()
 def J_projectManeger_popupMenuCommand(*arg):
     cmds.treeView('J_loadCache_TreeView',e=1, clearSelection=1)
     if cmds.treeView('J_loadCache_TreeView',q=1, itemExists=arg[0]):
@@ -66,7 +62,13 @@ def J_resourceSetupTool_addTreeItem(*arg):
                 mayaFile=mayaFile[0]
             else:
                 return
-            cmds.treeView('J_loadCache_TreeView',e=1, addItem=(mayaFile, sel[0]) )
+            cmds.treeView('J_loadCache_TreeView',e=1, addItem=(sel[0]+'$'+mayaFile, sel[0]) )
+            cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(sel[0]+'$'+mayaFile, mayaFile) )
+
+            state='nClothDisplayCurrent.png'
+            if os.path.splitext(mayaFile)[0].endswith('cfx'):
+                state='hairConvertHairSystem.png'
+            cmds.treeView('J_loadCache_TreeView',edit=1, image=(sel[0]+'$'+mayaFile, 1,state) )
 
 def J_resourceSetupTool_loadFile():
     cmds.treeView( 'J_loadCache_TreeView', edit=True, removeAll = True )
@@ -82,10 +84,9 @@ def J_resourceSetupTool_loadFile():
     #如果目录不存在，则尝试加载工程的jmeta，从工程信息解析资产目录
     if not os.path.exists(assetsPath):
         j_meta=JpyModules.pipeline.J_meta(cmds.workspace(q=1,rd=1)[0:-1])
-        if j_meta.metaInfo['userInfo'].has_key('assetPath'):
-            if os.path.exists(j_meta.metaInfo['userInfo']['assetPath']):
-                assetsPath=j_meta.metaInfo['userInfo']['assetPath']    
-                cmds.textField('J_resourceSetupTool_assetsPath',e=1,text=assetsPath)
+        if j_meta.metaInfo['userInfo'].has_key('assetPath'):            
+            assetsPath=cmds.workspace(q=1,rd=1)[0:-1]+j_meta.metaInfo['userInfo']['assetPath']    
+            cmds.textField('J_resourceSetupTool_assetsPath',e=1,text=assetsPath)
     if not os.path.exists(assetsPath):
         print(u'资产目录有误，或者不存在')
         return
@@ -194,15 +195,15 @@ def J_resourceSetupTool_addItem(cacheAssetPath,cacheFolderName):
         cfxFile=cacheFolderName+"_cfxFile"
         cfxstate='error.png'
     #添加绑定
-    cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(srfFile, cacheFolderName) )
-    #cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(srfFile, srfFile) )
-    cmds.treeView('J_loadCache_TreeView',edit=1, image=(srfFile, 1,srfstate) )
+    cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(cacheFolderName+'$'+srfFile, cacheFolderName) )
+    cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(cacheFolderName+'$'+srfFile, srfFile) )
+    cmds.treeView('J_loadCache_TreeView',edit=1, image=(cacheFolderName+'$'+srfFile, 1,srfstate) )
 
     #cfx动力学
     
-    cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(cfxFile, cacheFolderName) )
-    #cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(cfxFile, cfxFile) )
-    cmds.treeView('J_loadCache_TreeView',edit=1, image=(cfxFile, 1,cfxstate) )
+    cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(cacheFolderName+'$'+cfxFile, cacheFolderName) )
+    cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(cacheFolderName+'$'+cfxFile, cfxFile) )
+    cmds.treeView('J_loadCache_TreeView',edit=1, image=(cacheFolderName+'$'+cfxFile, 1,cfxstate) )
     
     #设置按钮显示状态
     #'error.png','precompExportChecked.png'
@@ -210,31 +211,17 @@ def J_resourceSetupTool_addItem(cacheAssetPath,cacheFolderName):
     #cmds.treeView('J_loadCache_TreeView',edit=1, itemRenamedCommand=\
                   #JpyModules.pipeline.J_resourceSetupTool.J_resourceSetupTool_resetTreeItem)
 
-def J_resourceSetupTool_resetTreeItem(*args):
-    pitem=cmds.treeView('J_loadCache_TreeView',q=1, itemParent=args[0] )
-    if  pitem!='':
-        print pitem
-        '''
-        if os.path.exists(args[1]):
-            cmds.treeView('J_loadCache_TreeView',e=1, removeItem=args[0] )
-            cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(args[1], pitem) )
-            if args[1].replace('\\','/').endswith('_srf.mb') or args[1].endswith('_srf.ma'):
-                cmds.treeView('J_loadCache_TreeView',edit=1, image=(args[1], 1,'nClothDisplayCurrent.png') )
-            if args[1].replace('\\','/').endswith('_cfx.mb') or args[1].endswith('_cfx.ma'):
-                cmds.treeView('J_loadCache_TreeView',edit=1, image=(args[1], 1,'hairConvertHairSystem.png') )    
-        else:
-            cmds.treeView('J_loadCache_TreeView',edit=1, image=(args[1], 1,'error.png') )   
-        '''
+
 #按钮功能 文件存在则加载
 def J_resourceSetupTool_refFile(*args):
     itemInfo=cmds.treeView('J_loadCache_TreeView',q=1,children=args[0])
-    
+    #pitem=cmds.treeView('J_loadCache_TreeView',q=1, itemParent=sel[0] )
     for item in itemInfo:
-        print item
-        fileName=os.path.splitext(os.path.basename(item.split('@')[-1]))[0]
+        print (u'引入文件：'+ item.split('$')[-1])
+        fileName=os.path.splitext(os.path.basename(item.split('$')[-1]))[0]
 
-        if os.path.exists(item.split('@')[-1])  :        
-            refFile=cmds.file(item.split('@')[-1], reference=True, mergeNamespacesOnClash=False, namespace=fileName) 
+        if os.path.exists(item.split('$')[-1])  :        
+            refFile=cmds.file(item.split('$')[-1], reference=True, mergeNamespacesOnClash=False, namespace=fileName) 
             refNode=cmds.referenceQuery(refFile,referenceNode=True)
             #名字空间默认带冒号去掉开头的冒号
             modelNameSpace=cmds.referenceQuery(refNode,namespace=True)
@@ -254,6 +241,7 @@ def J_resourceSetupTool_refFile(*args):
                 if fItem1.endswith('_ani.abc') and fItem1.lower().find(fileName.replace('_srf','_ani'))>-1 :
                     animAbcfile=abcPath+"/"+fItem1
                     #print animAbcfile
+                    print (modelNameSpace+":srfNUL")
                     cmds.AbcImport(animAbcfile ,mode= 'import' ,connect =(modelNameSpace+":srfNUL"),createIfNotFound=1)
                 if fItem1.endswith('_sim.abc') and fItem1.lower().find(fileName.replace('_cfx','_sim'))>-1 :
                     simAbcFile=abcPath+"/"+fItem1

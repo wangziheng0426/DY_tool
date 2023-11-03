@@ -31,23 +31,12 @@ def J_CFXWorkFlow_outAbcGeo():
             refNode=cmds.referenceQuery(mitem,tr=1,referenceNode=1)
             refFile=cmds.referenceQuery(refNode,filename=1)
             if os.path.exists(refFile):
-                #新版根据meta解析资产并输出日志,如果存在meta，则使用meta的数据
-                projName=os.path.basename(cmds.workspace(q=1,rd=1)[0:-1])
-                asssetTypeName=''
                 assetName=os.path.splitext(os.path.basename(refFile))[0]
+                if assetName.lower().endswith('_rig') or assetName.lower().endswith('_srf') or assetName.lower().endswith('_cfx'):
+                    assetName=assetName[:-4]
                 #找工程目录下的jmeta
-                j_meta=JpyModules.pipeline.J_meta(cmds.workspace(q=1,rd=1)[0:-1])
-                if len(j_meta.metaInfo)>0 :
-                    if j_meta.metaInfo.has_key('baseInfo'):
-                        if j_meta.metaInfo['baseInfo'].has_key('projectPath'):
-                            projName=os.path.splitext(os.path.basename(j_meta.metaInfo['baseInfo']['projectPath']))[0]
-                    if j_meta.metaInfo.has_key('userInfo'):
-                        for uk,uv in j_meta.metaInfo['userInfo'].items():
-                            if refFile.startswith(j_meta.metaInfo['baseInfo']['projectPath']+uv):
-                                asssetTypeName=uv.split('/')[-1]
-                                for ftItem in os.listdir(j_meta.metaInfo['baseInfo']['projectPath']+uv):
-                                    if os.path.dirname(refFile).find(ftItem)>-1:
-                                        assetName=ftItem
+                projName=os.path.splitext(os.path.basename(cmds.workspace(q=1,rd=1)[0:-1]))[0]
+                asssetTypeName=os.path.basename(os.path.dirname(refFile).split(assetName)[0][:-1])
                 #   print asssetTypeName
                 if mitem.endswith('srfNUL'):
                     cacheName=projName+'_' +asssetTypeName+'_'+assetName+"_ani"

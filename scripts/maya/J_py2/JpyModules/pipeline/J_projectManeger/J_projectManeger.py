@@ -214,10 +214,10 @@ class J_projectManeger_itemAttr():
             #区分基础属性,和自定义属性            
             attrName=kItem.replace('J_pm_subWin_','')[0:-2]
             if self.j_meta.metaInfo['baseInfo'].has_key(attrName):
-                self.j_meta.metaInfo['baseInfo'][attrName]=cmds.textField(kItem[0:-2]+'_v',q=1,text=1)
+                self.j_meta.metaInfo['baseInfo'][attrName]=cmds.textField(kItem[0:-2]+'_v',q=1,text=1).encode('utf-8')
             #if self.j_meta.metaInfo['userInfo'].has_key(attrName):
             else:
-                self.j_meta.metaInfo['userInfo'][attrName]=cmds.textField(kItem[0:-2]+'_v',q=1,text=1).strip() 
+                self.j_meta.metaInfo['userInfo'][attrName]=cmds.textField(kItem[0:-2]+'_v',q=1,text=1).strip().encode('utf-8')
         #保存信息文件
         self.j_meta.J_saveMeta()
         cmds.deleteUI('J_projectManeger_subWin',window=1)

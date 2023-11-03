@@ -69,23 +69,13 @@ def J_exportAnimationFromRefToAbc(refNode,filter=['srfNUL']):
     refFile=cmds.referenceQuery(refNode,filename=1 )
     outPath=JpyModules.public.J_getMayaFileFolder()+"/cache/"
     if os.path.exists(refFile):
-        #新版根据meta解析资产并输出日志,如果存在meta，则使用meta的数据
-        projName=os.path.basename(cmds.workspace(q=1,rd=1)[0:-1])
-        asssetTypeName=''
+        #查找个关键字名称
         assetName=os.path.splitext(os.path.basename(refFile))[0]
-        #找工程目录下的jmeta
-        j_meta=JpyModules.pipeline.J_meta(cmds.workspace(q=1,rd=1)[0:-1])
-        if len(j_meta.metaInfo)>0 :
-            if j_meta.metaInfo.has_key('baseInfo'):
-                if j_meta.metaInfo['baseInfo'].has_key('projectPath'):
-                    projName=os.path.splitext(os.path.basename(j_meta.metaInfo['baseInfo']['projectPath']))[0]
-            if j_meta.metaInfo.has_key('userInfo'):
-                for uk,uv in j_meta.metaInfo['userInfo'].items():
-                    if refFile.startswith(j_meta.metaInfo['baseInfo']['projectPath']+uv):
-                        asssetTypeName=uv.split('/')[-1]
-                        for ftItem in os.listdir(j_meta.metaInfo['baseInfo']['projectPath']+uv):
-                            if os.path.dirname(refFile).find(ftItem)>-1:
-                                assetName=ftItem
+        if assetName.lower().endswith('_rig') or assetName.lower().endswith('_srf') or assetName.lower().endswith('_cfx'):
+            assetName=assetName[:-4]
+        
+        projName=os.path.splitext(os.path.basename(cmds.workspace(q=1,rd=1)[0:-1]))[0]
+        asssetTypeName=os.path.basename(os.path.dirname(refFile).split(assetName)[0][:-1])
 
         cacheName=projName+'_' +asssetTypeName+'_'+assetName+"_ani"
         outPath+=asssetTypeName+'_'+assetName+"@"+refNode
@@ -109,20 +99,28 @@ def J_exportAnimationFromRefNodeToFbx(refNode,jointOnly=False):
     cmds.lockNode("initialShadingGroup", l=0, lu=0)
     startFrame=cmds.playbackOptions( query=1, minTime=1)
     endFrame=cmds.playbackOptions( query=1, maxTime=1)
-
-    #文件路径
-    filePath=JpyModules.public.J_getMayaFileFolder()+'/cache'    
+ 
     #文件名
     refFile=cmds.referenceQuery(refNode,filename=1)
-    assetName=J_analysisAssetsName(refFile)       
-    filePath+='/'+assetName+"@"+refNode
-    if not os.path.exists(filePath):
-        os.makedirs(filePath)
-    outPath=filePath+'/'+assetName+"_ani.fbx"
+    #查找个关键字名称,路径
+    outPath=JpyModules.public.J_getMayaFileFolder()+"/cache/"
+    assetName=os.path.splitext(os.path.basename(refFile))[0]
+    if assetName.lower().endswith('_rig') or assetName.lower().endswith('_srf') or assetName.lower().endswith('_cfx'):
+        assetName=assetName[:-4]
+    projName=os.path.splitext(os.path.basename(cmds.workspace(q=1,rd=1)[0:-1]))[0]
+    asssetTypeName=os.path.basename(os.path.dirname(refFile).split(assetName)[0][:-1])
+
+    cacheName=projName+'_' +asssetTypeName+'_'+assetName+"_ani.fbx"
+    cacheFaceName=projName+'_' +asssetTypeName+'_'+assetName+"_faceAni.fbx"
+    outPath+=asssetTypeName+'_'+assetName+"@"+refNode
+
+    if not os.path.exists(outPath):
+        os.makedirs(outPath)
+    
     if (cmds.objExists(refNode) ):        
         #如果ref未加载，则加载
         if (not cmds.referenceQuery(refNode,isLoaded=1) ):
-            cmds.file(refNode,loadReferenceDepth="asPrefs",loadReference=1)
+            cmds.file(refFile,loadReferenceDepth="asPrefs",loadReference=1)
         #搜索根骨
         root=J_getRootJointFromRefNode(refNode)
 
@@ -131,7 +129,6 @@ def J_exportAnimationFromRefNodeToFbx(refNode,jointOnly=False):
             print (refNode+":ref节点中没有找到骨骼,仅导出ref相关的模型")
             cmds.select(cmds.ls(cmds.referenceQuery(refNode,nodes=1),type='mesh'))
             #导入ref
-            refFile=cmds.referenceQuery(refNode,filename=1)
             cmds.file(refFile,importReference=1)
             #卸载其他ref
             allRefFile=cmds.file(q=1,r=1)
@@ -148,7 +145,6 @@ def J_exportAnimationFromRefNodeToFbx(refNode,jointOnly=False):
                 bakeOnOverrideLayer= 0 ,minimizeRotation=1,controlPoints = 0,shape=1)           
         
             #导入ref
-            refFile=cmds.referenceQuery(refNode,filename=1)
             cmds.file(refFile,importReference=1)
             #卸载其他ref
             allRefFile=cmds.file(q=1,r=1)
@@ -201,13 +197,10 @@ def J_exportAnimationFromRefNodeToFbx(refNode,jointOnly=False):
         JpyModules.public.J_removeAllNameSpace()
         #导出动画
         quaternionMode=cmds.optionMenu('J_resourceExporter_optionMenu01',q=1,v=1)
-        JpyModules.public.J_exportFbx(outPath,takeName=refNode,QuaternionMode=quaternionMode) 
+        JpyModules.public.J_exportFbx(outPath+'/'+cacheName,takeName=refNode,QuaternionMode=quaternionMode) 
         #导出表情,如果不是仅导出骨骼模式，则单独输出表情文件，表情文件保存时会创建一个组，并以角色名命名。
         if not jointOnly:
-            outPath=filePath+'/'+assetName+"@"+refNode+"_faceAni.fbx"
             faceModels=cmds.ls("*_Face",ap=1,type='transform')
-            
-
             if faceModels:
                 cmds.select(cmds.ls(cmds.listHistory(faceModels),type='blendShape'))
                 if len(cmds.ls(sl=1)<1):
@@ -239,8 +232,8 @@ def J_exportAnimationFromRefNodeToFbx(refNode,jointOnly=False):
                 chFaceGroup=cmds.createNode('transform',n=assetName)
                 cmds.parent(faceModels ,chFaceGroup)
                 cmds.select(chFaceGroup)
-                JpyModules.public.J_exportFbx(outPath,takeName=assetName) 
-                J_replaceSubdeformer(outPath)
+                JpyModules.public.J_exportFbx(outPath+'/'+cacheFaceName,takeName=assetName) 
+                J_replaceSubdeformer(outPath+'/'+cacheFaceName)
 #仅导出选择的对象为fbx,选择模型即可连带关联的骨骼一起导出
 def J_exportFbxFromSelection():
     sel=cmds.ls(sl=1,ap=1)   
@@ -372,33 +365,7 @@ def J_analysisCamName():
         return ''
     
     return res.replace('/','') 
-#解析项目名称
-def J_analysisAssetsName(inFileName):    
-    #分析角色名，如果失败，则返回文件名
-    '''
-    if os.path.exists(fileFullName):
-        chName=re.search('[a-zA-Z]*/\w*/rig/',fileFullName,re.IGNORECASE)
-        if chName!=None:
-            return chName.group().replace('/rig/','').replace('/','_')
-        else:
-            return os.path.splitext(os.path.basename(fileFullName))[0]
-    else:
-        print (u'文件不存在，请核实')
-        return ('none_temp')
-    '''
-    assetName=os.path.splitext(os.path.basename(inFileName))[0]
-    if assetName.lower().endswith('_rig'):
-        assetName=assetName[:-4]
-    #找工程目录下的jmeta
-    j_meta=JpyModules.pipeline.J_meta(cmds.workspace(q=1,rd=1)[0:-1])
-    if len(j_meta.metaInfo)>0 :
-        if j_meta.metaInfo.has_key('userInfo'):
-            for uk,uv in j_meta.metaInfo['userInfo'].items():
-                if inFileName.startswith(j_meta.metaInfo['baseInfo']['projectPath']+uv):
-                    for ftItem in os.listdir(j_meta.metaInfo['baseInfo']['projectPath']+uv):
-                        if os.path.dirname(inFileName).find(ftItem)>-1:
-                            assetName=ftItem
-    return assetName
+
 #maya导出的fbx会自动添加subdeformer字段，强制擦除
 def J_replaceSubdeformer(fbxFile):
     filep=open(fbxFile,'r')
