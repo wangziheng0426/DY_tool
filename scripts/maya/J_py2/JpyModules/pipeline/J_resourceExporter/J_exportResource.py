@@ -66,7 +66,7 @@ def J_animationExportCamera2Abc(camera):
         mel.eval(exportString)
 #根据reference导出abc    
 def J_exportAnimationFromRefToAbc(refNode,filter=['srfNUL']):
-    refFile=cmds.referenceQuery(refNode,filename=1 )
+    refFile=cmds.referenceQuery(refNode,filename=1,withoutCopyNumber=1 )
     outPath=JpyModules.public.J_getMayaFileFolder()+"/cache/"
     if os.path.exists(refFile):
         #查找个关键字名称
@@ -101,7 +101,7 @@ def J_exportAnimationFromRefNodeToFbx(refNode,jointOnly=False):
     endFrame=cmds.playbackOptions( query=1, maxTime=1)
  
     #文件名
-    refFile=cmds.referenceQuery(refNode,filename=1)
+    refFile=cmds.referenceQuery(refNode,filename=1,withoutCopyNumber=1)
     #查找个关键字名称,路径
     outPath=JpyModules.public.J_getMayaFileFolder()+"/cache/"
     assetName=os.path.splitext(os.path.basename(refFile))[0]
@@ -261,7 +261,7 @@ def J_exportFbxFromSelectionToEngine():
     if cmds.referenceQuery(sel,isNodeReferenced=True):
         #导入ref
         refNode=cmds.referenceQuery(sel,tr=1,referenceNode=1)
-        refFile=cmds.referenceQuery(refNode,filename=1)
+        refFile=cmds.referenceQuery(refNode,filename=1,withoutCopyNumber=1)
         cmds.file(refFile,importReference=1)
         if cmds.referenceQuery(sel,isNodeReferenced=True):
             print (u"存在多层ref,请检查")

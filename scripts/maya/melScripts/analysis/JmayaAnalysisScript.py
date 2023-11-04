@@ -206,7 +206,7 @@ def J_getReference():
     refNodes=cmds.ls(type='reference')
     if len(refNodes)>0:
         for node in refNodes:
-            refPath = cmds.referenceQuery(node,unresolvedName=True,filename=True).encode('utf-8')
+            refPath = cmds.referenceQuery(node,unresolvedName=True,filename=True,withoutCopyNumber=1 ).encode('utf-8')
             if refPath.find('{')>-1:
                 refPath=refPath[0:refPath.find('{')]
             allReference.append(J_formatPathData(refPath))

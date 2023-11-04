@@ -237,16 +237,35 @@ def J_resourceSetupTool_refFile(*args):
             animAbcfile=''
             simAbcFile=''
             for fItem1 in os.listdir(abcPath):
-                #将abc缓存merge到模型
+                #将abc缓存merge到模型,如果导出的时候带有jcl信息，那么根据导出的时候选择的节点进行指认
                 if fItem1.endswith('_ani.abc') and fItem1.lower().find(fileName.replace('_srf','_ani'))>-1 :
-                    animAbcfile=abcPath+"/"+fItem1
-                    #print animAbcfile
-                    print (modelNameSpace+":srfNUL")
-                    cmds.AbcImport(animAbcfile ,mode= 'import' ,connect =(modelNameSpace+":srfNUL"),createIfNotFound=1)
+                    animAbcfile=abcPath+"/"+fItem1                    
+                    nodeToMergeAbc=(modelNameSpace+":srfNUL")
+                    jclFile=animAbcfile[:-4]+'_Log.jcl'
+                    jclstr=''
+                    if os.path.exists(jclFile):
+                        ofile=open(jclFile,'r')
+                        jclstr=json.load(ofile)
+                        ofile.close()
+                    
+                        if cmds.objExists(modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]):
+                            nodeToMergeAbc=modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]
+
+                            print (u'使用jcl文件中读取到的节点：'+nodeToMergeAbc)
+                    cmds.AbcImport(animAbcfile ,mode= 'import' ,connect =nodeToMergeAbc,createIfNotFound=1)
                 if fItem1.endswith('_sim.abc') and fItem1.lower().find(fileName.replace('_cfx','_sim'))>-1 :
                     simAbcFile=abcPath+"/"+fItem1
-                    #print simAbcFile
-                    cmds.AbcImport(simAbcFile,mode= 'import' ,connect =(modelNameSpace+":simNUL"),createIfNotFound=1)
+                    nodeToMergeAbc=(modelNameSpace+":simNUL")
+                    jclFile=animAbcfile[:-4]+'.jcl'
+                    jclstr=''
+                    if os.path.exists(jclFile):
+                        ofile=open(jclFile,'r')
+                        jclstr=json.load(ofile)
+                        ofile.close()
+                    if cmds.objExists(modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]):
+                        nodeToMergeAbc=modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]
+                        print (u'使用jcl文件中读取到的节点：'+nodeToMergeAbc)
+                    cmds.AbcImport(simAbcFile,mode= 'import' ,connect =nodeToMergeAbc,createIfNotFound=1)
             #自动加载xgen曲线
             if xgg.Maya:
                 palettes = xg.palettes()
@@ -262,7 +281,7 @@ def J_resourceSetupTool_refFile(*args):
                             #abc名称匹配xgen描述，相符则加载缓存
                             for fItem1 in os.listdir(abcPath):
                                 if description.find(fItem1.replace('_OutputCurves.abc',''))>-1:
-                                    print (description+u":加载abc")
+                                    print (description+u":加载abc->"+fItem1)
                                     xg.setAttr('useCache','true',palette,description,'SplinePrimitive')
                                     xg.setAttr('cacheFileName',str(abcPath+"/"+fItem1) ,str(palette),str(description),'SplinePrimitive')
                                     de = xgg.DescriptionEditor

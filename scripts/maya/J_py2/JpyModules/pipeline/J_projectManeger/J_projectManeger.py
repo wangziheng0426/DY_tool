@@ -35,6 +35,7 @@ class J_projectManeger():
         popm=cmds.popupMenu(parent=self.treeV)
         cmds.menuItem(parent=popm,label=u"索引到文件",c=self.J_projectManeger_openFilePath )
         cmds.menuItem(parent=popm,label=u"复制相对目录",c=self.J_projectManeger_copyRelativeFilePath )
+        cmds.menuItem(parent=popm,label=u"复制绝对目录",c=self.J_projectManeger_copyAbsoluteFilePath )
         
         if os.path.exists(self.projectPath):
             #如果当前打开的文件在工程目录下,则创建目录结构,如果不在,就根据工程目录生成
@@ -133,7 +134,10 @@ class J_projectManeger():
         if len(sel)>0:
             relativePath=sel[0].replace(self.projectPath,'')
             os.system('echo '+relativePath+'|clip')
-        
+    def J_projectManeger_copyAbsoluteFilePath(self,*arg):
+        sel=cmds.treeView(self.treeV,q=1, selectItem=1)
+        if len(sel)>0:
+            os.system('echo '+sel[0]+'|clip')      
 #############################################################################################
 #子窗口逻辑
 class J_projectManeger_itemAttr():
@@ -218,6 +222,7 @@ class J_projectManeger_itemAttr():
             #if self.j_meta.metaInfo['userInfo'].has_key(attrName):
             else:
                 self.j_meta.metaInfo['userInfo'][attrName]=cmds.textField(kItem[0:-2]+'_v',q=1,text=1).strip().encode('utf-8')
+        self.j_meta.metaInfo['baseInfo']['projectPath']=cmds.scrollField('J_projectManager_subWin_obj',q=1,text=1)
         #保存信息文件
         self.j_meta.J_saveMeta()
         cmds.deleteUI('J_projectManeger_subWin',window=1)

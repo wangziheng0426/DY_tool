@@ -46,7 +46,7 @@ def J_autoLayerSeptateGroup(filePath='',lightFilePath='',replaceRef='',groupName
             cmds.file(filePath,prompt=False,open=True,loadReferenceDepth='none',force=True)
             allReferences=cmds.ls(type ='reference')
             for refItem in allReferences:
-                refFile=cmds.referenceQuery(refItem,f=True,wcn=True ) 
+                refFile=cmds.referenceQuery(refItem,f=1,withoutCopyNumber=1 ) 
                 if  replaceRef!='':
                     
                     refFile=refFile[:-3]+replaceRef+refFile[-3:]
@@ -88,7 +88,7 @@ def J_autoLayerSeptateGroup(filePath='',lightFilePath='',replaceRef='',groupName
     for refItem in allReferences:
         refFile=''
         try:
-            refFile=cmds.referenceQuery(refItem,f=True,wcn=True )
+            refFile=cmds.referenceQuery(refItem,f=1,withoutCopyNumber=1  )
         except:
             continue
         isCharactor=False

@@ -5,7 +5,7 @@
 ##  @author 桔
 ##  @version 1.0
 ##  @date  16:46 2018/11/2
-#  History:  废弃
+#  History:  
 ##导出abc
 import sys
 import os,re
@@ -29,7 +29,7 @@ def J_CFXWorkFlow_outAbcGeo():
         #判断是否为ref的对象
         if cmds.referenceQuery(mitem,isNodeReferenced=True):
             refNode=cmds.referenceQuery(mitem,tr=1,referenceNode=1)
-            refFile=cmds.referenceQuery(refNode,filename=1)
+            refFile=cmds.referenceQuery(refNode,filename=1,withoutCopyNumber=1 )
             if os.path.exists(refFile):
                 assetName=os.path.splitext(os.path.basename(refFile))[0]
                 if assetName.lower().endswith('_rig') or assetName.lower().endswith('_srf') or assetName.lower().endswith('_cfx'):
@@ -38,12 +38,13 @@ def J_CFXWorkFlow_outAbcGeo():
                 projName=os.path.splitext(os.path.basename(cmds.workspace(q=1,rd=1)[0:-1]))[0]
                 asssetTypeName=os.path.basename(os.path.dirname(refFile).split(assetName)[0][:-1])
                 #   print asssetTypeName
+                #按照后缀区分是模型资产，还是xgen模型，无法识别的模型，都当做是模型资产
                 if mitem.endswith('srfNUL'):
                     cacheName=projName+'_' +asssetTypeName+'_'+assetName+"_ani"
                 elif mitem.endswith('simNUL'):
                     cacheName=projName+'_' +asssetTypeName+'_'+assetName+"_sim"
                 else:
-                    cacheName=projName+ asssetTypeName+"_"+mitem.replace(":","@")
+                    cacheName=projName+'_' + asssetTypeName+"_"+mitem.replace(":","@")+"_ani"
                 outPath+=asssetTypeName+'_'+assetName+"@"+refNode
         else:
             #如果选择的对象已经没有ref了，则通过节点名称分析，读取冒号前面的部分
