@@ -162,15 +162,6 @@ class J_projectManeger_itemAttr():
 
     #生成属性面板列表
     def J_projectManeger_subWin_createTextList(self):
-        #先删除已有的元素,再重新创建,需要先清理弹出菜单,不然maya会崩溃
-        if cmds.formLayout('J_projectManeger_subWin_FromLayout1',q=1,exists=1):
-            cmds.deleteUI('J_projectManeger_subWin_FromLayout1')
-            print ('del')
-        
-        cmds.formLayout('J_projectManeger_subWin_FromLayout1',numberOfDivisions=100,parent='J_projectManeger_subWin_FromLayout0')
-        cmds.formLayout('J_projectManeger_subWin_FromLayout0',e=1,\
-            ac=[('J_projectManeger_subWin_FromLayout1','top',3,"J_projectManager_subWin_obj")],\
-            ap=[('J_projectManeger_subWin_FromLayout1','right',1,99),('J_projectManeger_subWin_FromLayout1','left',1,1)]) 
         #基础属性面板
         index=0
         baseAttrDic=self.j_meta.metaInfo['baseInfo']
@@ -179,8 +170,8 @@ class J_projectManeger_itemAttr():
             if baseAttrDic.has_key(attrItem):
                 self.J_projectManeger_subWin_createTextField(attrItem,baseAttrDic[attrItem],index)
                 index=index+1
-        if  cmds.textField('J_pm_subWin_uuid_v',q=1,exists=1):
-            cmds.textField('J_pm_subWin_uuid_v',e=1,editable=0)        
+        if  cmds.textFieldGrp('J_pm_subWin_uuid',q=1,exists=1):
+            cmds.textFieldGrp('J_pm_subWin_uuid',e=1,editable=0)        
         userAttrDic=self.j_meta.metaInfo['userInfo']
         #创建自定义属性面板
         if len(userAttrDic)>0:
@@ -190,43 +181,33 @@ class J_projectManeger_itemAttr():
                 index=index+1
     #创建表格元素
     def J_projectManeger_subWin_createTextField(self,textLabel,textFieldText,index):
-        t0='J_pm_subWin_'+textLabel+'_k'
-        t1='J_pm_subWin_'+textLabel+'_v'
-        if not cmds.text(t0,q=1,exists=1):
-            t0=cmds.text(t0,label=textLabel,w=84,parent='J_projectManeger_subWin_FromLayout1')
+        textFieldGrpName='J_pm_subWin_'+textLabel
+        temp0=''
+        if not cmds.textFieldGrp(textFieldGrpName,q=1,exists=1):
+            temp0=cmds.textFieldGrp(textFieldGrpName,label=textLabel, text=textFieldText,\
+                parent='J_projectManager_subWin_colLay')
             #右键菜单
-            popmenu0=cmds.popupMenu('J_pm_subWin_pop0_'+textLabel,parent=t0)
+            popmenu0=cmds.popupMenu('J_pm_subWin_pop0_'+textLabel,parent=temp0)
             cmds.menuItem('J_pm_subWin_popMi0_'+textLabel,\
-                c=partial(self.J_projectManeger_subWin_delInfo,t0),label=u'删除属性',parent=popmenu0) 
-
-            cmds.formLayout('J_projectManeger_subWin_FromLayout1',e=1,\
-                af=[(t0,'top',23*index+6),(t0,'left',1)],)
-        if not cmds.textField(t1,q=1,exists=1):
-            t1=cmds.textField(t1,text=textFieldText,parent='J_projectManeger_subWin_FromLayout1')
-            #右键菜单
-            
-            popmenu1=cmds.popupMenu('J_pm_subWin_pop1_'+textLabel,parent=t1)
+                c=partial(self.J_projectManeger_subWin_delInfo,temp0),label=u'删除属性',parent=popmenu0) 
             cmds.menuItem('J_pm_subWin_popMi1_'+textLabel,\
-                c=partial(self.J_projectManeger_subWin_copyToClipBoard,t1),label=u'复制信息',parent=popmenu1) 
-
-            cmds.formLayout('J_projectManeger_subWin_FromLayout1',e=1,\
-                af=[(t1,'top',23*index+6),(t1,'right',1),(t1,'left',85)]) 
+                c=partial(self.J_projectManeger_subWin_copyToClipBoard,temp0),label=u'复制信息',parent=popmenu0) 
+            
     #保存信息倒jmeta
     def J_projectManeger_subWin_saveJmeta(self,*arg):
         #现获取属性控件列表
         controlList=[]
         for item in cmds.lsUI( type='control' ):
-            if item.startswith('J_pm_subWin_') and item.endswith('_k'):
+            if item.startswith('J_pm_subWin_') :
                 controlList.append(item)
         self.j_meta.metaInfo['userInfo'].clear()
         for kItem in controlList:
             #区分基础属性,和自定义属性            
-            attrName=kItem.replace('J_pm_subWin_','')[0:-2]
+            attrName=kItem.replace('J_pm_subWin_','')
             if self.j_meta.metaInfo['baseInfo'].has_key(attrName):
-                self.j_meta.metaInfo['baseInfo'][attrName]=cmds.textField(kItem[0:-2]+'_v',q=1,text=1).encode('utf-8')
-            #if self.j_meta.metaInfo['userInfo'].has_key(attrName):
+                self.j_meta.metaInfo['baseInfo'][attrName]=cmds.textFieldGrp(kItem,q=1,text=1).encode('utf-8')
             else:
-                self.j_meta.metaInfo['userInfo'][attrName]=cmds.textField(kItem[0:-2]+'_v',q=1,text=1).strip().encode('utf-8')
+                self.j_meta.metaInfo['userInfo'][attrName]=cmds.textFieldGrp(kItem,q=1,text=1).strip().encode('utf-8')
         self.j_meta.metaInfo['baseInfo']['projectPath']=cmds.scrollField('J_projectManager_subWin_obj',q=1,text=1)
         #保存信息文件
         self.j_meta.J_saveMeta()
@@ -251,24 +232,21 @@ class J_projectManeger_itemAttr():
         self.J_projectManeger_subWin_createTextList()
     #删除属性按钮
     def J_projectManeger_subWin_delInfo(self,*arg):
-        attrName=arg[0].split('J_pm_subWin_')[-1][0:-2]
+        attrName=cmds.textFieldGrp(arg[0],q=1,label=1)
+        attrValue=cmds.textFieldGrp(arg[0],q=1,text=1)
         if self.j_meta.metaInfo['userInfo'].has_key(attrName):
-            #self.j_meta.metaInfo['userInfo'].pop(attrName)
-            t0='J_pm_subWin_'+attrName+'_k'
-            t1='J_pm_subWin_'+attrName+'_v'
-            if cmds.text(t0,q=1,exists=1):
-                cmds.deleteUI(t0)
-            if cmds.textField(t1,q=1,exists=1):
-                cmds.deleteUI(t1)
-            #print (self.j_meta.metaInfo)
-            #self.j_meta.J_saveMeta()
-            #inpath=cmds.scrollField('J_projectManager_subWin_obj',q=1,text=1)
-            #self.__init__(inpath)
-            #self.J_projectManeger_subWin_createTextList()
+            self.j_meta.metaInfo['userInfo'].pop(attrName)
+
+            if cmds.textFieldGrp(arg[0],q=1,exists=1):
+                print arg[0]
+                cmds.evalDeferred('cmds.deleteUI(\"'+arg[0]+'\",control=1)')
+
+ 
     #右键命令
     def J_projectManeger_subWin_copyToClipBoard(self,*arg):
-        tx=cmds.textField(arg[0],q=1,text=1)
-        os.system('echo '+tx+'|clip')
+        tx=cmds.textFieldGrp(arg[0],q=1,text=1)
+        if tx!='':
+            os.system('echo '+tx+'|clip')
 if __name__=='__main__':
     temp=J_projectManeger()
     #temp.J_projectManeger_setProject()
