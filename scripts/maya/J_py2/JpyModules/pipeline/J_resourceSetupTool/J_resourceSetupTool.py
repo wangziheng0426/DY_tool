@@ -252,19 +252,21 @@ def J_resourceSetupTool_refFile(*args):
                             nodeToMergeAbc=modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]
 
                             print (u'使用jcl文件中读取到的节点：'+nodeToMergeAbc)
+                            print (u'使用abc：'+animAbcfile+u'merge到'+nodeToMergeAbc)
                     cmds.AbcImport(animAbcfile ,mode= 'import' ,connect =nodeToMergeAbc,createIfNotFound=1)
                 if fItem1.endswith('_sim.abc') and fItem1.lower().find(fileName.replace('_cfx','_sim'))>-1 :
                     simAbcFile=abcPath+"/"+fItem1
                     nodeToMergeAbc=(modelNameSpace+":simNUL")
-                    jclFile=animAbcfile[:-4]+'.jcl'
+                    jclFile=simAbcFile[:-4]+'.jcl'
                     jclstr=''
                     if os.path.exists(jclFile):
                         ofile=open(jclFile,'r')
                         jclstr=json.load(ofile)
                         ofile.close()
-                    if cmds.objExists(modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]):
-                        nodeToMergeAbc=modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]
-                        print (u'使用jcl文件中读取到的节点：'+nodeToMergeAbc)
+                        if cmds.objExists(modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]):
+                            nodeToMergeAbc=modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]
+                            print (u'使用jcl文件中读取到的节点：'+nodeToMergeAbc)
+                            print (u'使用abc：'+simAbcFile+u'merge到'+nodeToMergeAbc)
                     cmds.AbcImport(simAbcFile,mode= 'import' ,connect =nodeToMergeAbc,createIfNotFound=1)
             #自动加载xgen曲线
             if xgg.Maya:
