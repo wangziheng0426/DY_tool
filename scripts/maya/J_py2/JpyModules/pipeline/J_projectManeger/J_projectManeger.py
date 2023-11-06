@@ -37,20 +37,24 @@ class J_projectManeger():
         cmds.menuItem(parent=popm,label=u"复制相对目录",c=self.J_projectManeger_copyRelativeFilePath )
         cmds.menuItem(parent=popm,label=u"复制绝对目录",c=self.J_projectManeger_copyAbsoluteFilePath )
         
+        
         if os.path.exists(self.projectPath):
             #如果当前打开的文件在工程目录下,则创建目录结构,如果不在,就根据工程目录生成
-            sceneFileName=cmds.file(query=True,sceneName=True)            
+            sceneFileName=cmds.file(query=True,sceneName=True)
+            #添加目录元素
             for fitem in os.listdir(self.projectPath):              
                 self.J_projectManeger_treeAddItem(self.projectPath,self.projectPath+'/'+fitem)
-            #确认文件再工程目录下
-            if sceneFileName.startswith(self.projectPath):
+            #确认文件再工程目录下#所有目录转小写比对
+            if sceneFileName.lower().startswith(self.projectPath.lower()):
                 projectPathTemp=self.projectPath
+                #工程目录最后没有斜杠
                 for pItem in os.path.dirname(sceneFileName).replace(self.projectPath,'').split('/'):
                     if pItem!='':
                         projectPathTemp=projectPathTemp+'/'+pItem   
                         self.J_projectManeger_doubleClick(projectPathTemp,'')
-                cmds.treeView(self.treeV,e=1, selectItem=(sceneFileName,True))
-                cmds.treeView(self.treeV,e=1, showItem=sceneFileName)
+                if cmds.treeView(self.treeV,q=1, itemExists=sceneFileName ):
+                    cmds.treeView(self.treeV,e=1, selectItem=(sceneFileName,True))
+                    cmds.treeView(self.treeV,e=1, showItem=sceneFileName)
         #设置界面命令
         #双击命令
         cmds.treeView(self.treeV,edit=1, itemDblClickCommand2=self.J_projectManeger_doubleClick )        
@@ -90,12 +94,13 @@ class J_projectManeger():
         #双击目录，则创建子层对象
         if os.path.isdir(itemName):
             #读取下层目录,如果已经有子集,则先清除
-            if len(cmds.treeView(self.treeV,q=1, children=itemName ))>1:
-                for ritem in cmds.treeView(self.treeV,q=1, children=itemName )[1:]:
-                    if cmds.treeView(self.treeV,q=1, itemExists=ritem ):
-                        cmds.treeView(self.treeV,e=1, removeItem=ritem )
-            for fitem in os.listdir(itemName):
-                self.J_projectManeger_treeAddItem(itemName,itemName+'/'+fitem)
+            if cmds.treeView(self.treeV,q=1, itemExists=itemName ):
+                if len(cmds.treeView(self.treeV,q=1, children=itemName ))>1:
+                    for ritem in cmds.treeView(self.treeV,q=1, children=itemName )[1:]:
+                        if cmds.treeView(self.treeV,q=1, itemExists=ritem ):
+                            cmds.treeView(self.treeV,e=1, removeItem=ritem )
+                for fitem in os.listdir(itemName):
+                    self.J_projectManeger_treeAddItem(itemName,itemName+'/'+fitem)
         if os.path.splitext(itemName)[1].lower()  in {".mp4",'.avi','.mov','.m4v'}:
             os.startfile(itemName)
     #打开设置窗口
@@ -266,4 +271,4 @@ class J_projectManeger_itemAttr():
         os.system('echo '+tx+'|clip')
 if __name__=='__main__':
     temp=J_projectManeger()
-    temp.J_projectManeger_setProject()
+    #temp.J_projectManeger_setProject()
