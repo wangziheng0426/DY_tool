@@ -116,29 +116,27 @@ def J_resourceSetupTool_addItem(cacheAssetPath,cacheFolderName):
             abcJcl=json.load(ofile)
             ofile.close()
             break
+
     #读取jcl中的字段，按照绑定目录查找
-    srfFile=abcJcl['0']['referenceFile'][0].lower().replace('rig','srf')
+    srfFile=getCustomFilePath(abcJcl['0']['referenceFile'][0],'rig','srf')
     #设置帧率，时间线
     cmds.currentUnit(time=abcJcl["settings"]["frameRate"])
     cmds.playbackOptions(minTime=abcJcl["settings"]["frameRange"][0])
     cmds.playbackOptions(maxTime=abcJcl["settings"]["frameRange"][1])
     #如果不对，则尝试替换工程目录
     if not os.path.exists(srfFile):
-        srfFile=srfFile.replace(abcJcl['settings']['projectPath'].lower(),cmds.workspace(q=1,rd=1)[0:-1].lower())
-    #如果还是找不到文件，则尝试替换后缀
+        srfFile=srfFile.replace(abcJcl['settings']['projectPath'],cmds.workspace(q=1,rd=1)[0:-1])
+    # #如果还是找不到文件，则尝试替换后缀
+    # if not os.path.exists(srfFile):
+    #     if srfFile.endswith('.mb'):
+    #         srfFile=srfFile[:-3]+'.ma'
+    #     else:
+    #         srfFile=srfFile[:-3]+'.mb'   
+
+    cfxFile=getCustomFilePath(abcJcl['0']['referenceFile'][0],'rig','cfx')
     if not os.path.exists(srfFile):
-        if srfFile.endswith('.mb'):
-            srfFile=srfFile[:-3]+'.ma'
-        else:
-            srfFile=srfFile[:-3]+'.mb'   
-    cfxFile=abcJcl['0']['referenceFile'][0].lower().replace('rig','cfx')
-    if not os.path.exists(srfFile):
-        cfxFile=cfxFile.replace(abcJcl['settings']['projectPath'].lower(),cmds.workspace(q=1,rd=1)[0:-1].lower())
-    if not os.path.exists(cfxFile):
-        if cfxFile.endswith('.mb'):
-            cfxFile=cfxFile[:-3]+'.ma'
-        else:
-            cfxFile=cfxFile[:-3]+'.mb'  
+        cfxFile=cfxFile.replace(abcJcl['settings']['projectPath'],cmds.workspace(q=1,rd=1)[0:-1])
+ 
     #如果根据jcl找不到文件，则从窗口设置的目录中搜索
     assetsPath=cmds.textField('J_resourceSetupTool_assetsPath',q=1,text=1)
 
@@ -152,13 +150,13 @@ def J_resourceSetupTool_addItem(cacheAssetPath,cacheFolderName):
     found=0
     for dirItem in os.listdir(assetsPath):
         if dirItem==assetName:
-            currentAssetPath=(assetsPath+'/'+dirItem).lower()
+            currentAssetPath=(assetsPath+'/'+dirItem)
             break
         if os.path.isdir(assetsPath+'/'+dirItem):
             for dirItem1 in os.listdir(assetsPath+'/'+dirItem):
             #资产目录名与缓存文件夹一致
                 if dirItem1==assetName:
-                    currentAssetPath=(assetsPath+'/'+dirItem+'/'+dirItem1).lower()
+                    currentAssetPath=(assetsPath+'/'+dirItem+'/'+dirItem1)
                     found=1
                     break
         if found:
@@ -171,7 +169,7 @@ def J_resourceSetupTool_addItem(cacheAssetPath,cacheFolderName):
             for item in files:
                 if os.path.splitext(item)[0]==assetName+"_srf":
                     if item.endswith('.ma') or item.endswith('.mb'):
-                        srfFile=(root.replace('\\','/')+'/'+item).lower()
+                        srfFile=(root.replace('\\','/')+'/'+item)
                         
                         break
         print (assetName+u"缓存文件中资产信息无效，自动识别："+srfFile)                
@@ -181,7 +179,7 @@ def J_resourceSetupTool_addItem(cacheAssetPath,cacheFolderName):
             for item in files:
                 if os.path.splitext(item)[0]==assetName+"_cfx":
                     if item.endswith('.ma') or item.endswith('.mb'):
-                        cfxFile=(root.replace('\\','/')+'/'+item).lower()
+                        cfxFile=(root.replace('\\','/')+'/'+item)
                         
                         break
         print (assetName+u"缓存文件中资产信息无效，自动识别："+cfxFile)
@@ -196,13 +194,13 @@ def J_resourceSetupTool_addItem(cacheAssetPath,cacheFolderName):
         cfxstate='error.png'
     #添加绑定
     cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(cacheFolderName+'$'+srfFile, cacheFolderName) )
-    cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(cacheFolderName+'$'+srfFile, srfFile) )
+    #cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(cacheFolderName+'$'+srfFile, srfFile) )
     cmds.treeView('J_loadCache_TreeView',edit=1, image=(cacheFolderName+'$'+srfFile, 1,srfstate) )
 
     #cfx动力学
     
     cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(cacheFolderName+'$'+cfxFile, cacheFolderName) )
-    cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(cacheFolderName+'$'+cfxFile, cfxFile) )
+    #cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(cacheFolderName+'$'+cfxFile, cfxFile) )
     cmds.treeView('J_loadCache_TreeView',edit=1, image=(cacheFolderName+'$'+cfxFile, 1,cfxstate) )
     
     #设置按钮显示状态
@@ -221,7 +219,8 @@ def J_resourceSetupTool_refFile(*args):
         fileName=os.path.splitext(os.path.basename(item.split('$')[-1]))[0]
 
         if os.path.exists(item.split('$')[-1])  :        
-            refFile=cmds.file(item.split('$')[-1], reference=True, mergeNamespacesOnClash=False, namespace=fileName) 
+            refFile=cmds.file(item.split('$')[-1], reference=True,prompt=0, mergeNamespacesOnClash=False, namespace=fileName) 
+            print (refFile+u'文件已导入')
             refNode=cmds.referenceQuery(refFile,referenceNode=True)
             #名字空间默认带冒号去掉开头的冒号
             modelNameSpace=cmds.referenceQuery(refNode,namespace=True)
@@ -238,7 +237,7 @@ def J_resourceSetupTool_refFile(*args):
             simAbcFile=''
             for fItem1 in os.listdir(abcPath):
                 #将abc缓存merge到模型,如果导出的时候带有jcl信息，那么根据导出的时候选择的节点进行指认
-                if fItem1.endswith('_ani.abc') and fItem1.lower().find(fileName.replace('_srf','_ani'))>-1 :
+                if fItem1.endswith('_ani.abc') and fItem1.lower().find(fileName.lower().replace('_srf','_ani'))>-1 :
                     animAbcfile=abcPath+"/"+fItem1                    
                     nodeToMergeAbc=(modelNameSpace+":srfNUL")
                     jclFile=animAbcfile[:-4]+'_Log.jcl'
@@ -252,9 +251,15 @@ def J_resourceSetupTool_refFile(*args):
                             nodeToMergeAbc=modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]
 
                             print (u'使用jcl文件中读取到的节点：'+nodeToMergeAbc)
-                            print (u'使用abc：'+animAbcfile+u'merge到'+nodeToMergeAbc)
-                    cmds.AbcImport(animAbcfile ,mode= 'import' ,connect =nodeToMergeAbc,createIfNotFound=1)
-                if fItem1.endswith('_sim.abc') and fItem1.lower().find(fileName.replace('_cfx','_sim'))>-1 :
+                    if cmds.objExists(nodeToMergeAbc):   
+                        cmds.AbcImport(animAbcfile,mode= 'import' ,connect =nodeToMergeAbc)       
+                        #commandToR='cmds.AbcImport("'+animAbcfile+'" ,mode="import" ,connect ="'+nodeToMergeAbc+'")'
+                        #cmds.evalDeferred(commandToR)
+                        print (u'使用abc：'+animAbcfile+u' merge到'+nodeToMergeAbc)
+                    else:
+                        print (nodeToMergeAbc+u'未找到')
+                    
+                if fItem1.endswith('_sim.abc') and fItem1.lower().find(fileName.lower().replace('_cfx','_sim'))>-1 :
                     simAbcFile=abcPath+"/"+fItem1
                     nodeToMergeAbc=(modelNameSpace+":simNUL")
                     jclFile=simAbcFile[:-4]+'.jcl'
@@ -266,8 +271,15 @@ def J_resourceSetupTool_refFile(*args):
                         if cmds.objExists(modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]):
                             nodeToMergeAbc=modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]
                             print (u'使用jcl文件中读取到的节点：'+nodeToMergeAbc)
-                            print (u'使用abc：'+simAbcFile+u'merge到'+nodeToMergeAbc)
-                    cmds.AbcImport(simAbcFile,mode= 'import' ,connect =nodeToMergeAbc,createIfNotFound=1)
+                            
+                    
+                    if cmds.objExists(nodeToMergeAbc):     
+                        cmds.AbcImport(simAbcFile,mode= 'import' ,connect =nodeToMergeAbc) 
+                        print (u'使用abc：'+simAbcFile+u'merge到'+nodeToMergeAbc)  
+                        #commandToR='cmds.AbcImport("'+simAbcFile+'" ,mode="import" ,connect ="'+nodeToMergeAbc+'",createIfNotFound=1)'
+                        #cmds.evalDeferred(commandToR)
+                    else:
+                        print (nodeToMergeAbc+u'未找到')
             #自动加载xgen曲线
             if xgg.Maya:
                 palettes = xg.palettes()
@@ -291,7 +303,41 @@ def J_resourceSetupTool_refFile(*args):
         else:
             print (u'未找到资产：'+item.split('@')[-1])
         
+def getCustomFilePath(inpath,itemA,itemB):
+    inpath=inpath.replace('\\','/')
+    #先搜索源目录
+    resPath=os.path.dirname(inpath)
 
+    pathsplitNum= resPath.lower().find('/'+itemA.lower())
+    #实际目录中的名字
+    iATemp=''
+    iBTemp=''
+    #找到源目录上层后，逐个比对是否符合目标目录
+    if pathsplitNum>-1:        
+        resPath=inpath[:pathsplitNum]
+        if os.path.exists(resPath):
+            for fItem in os.listdir(resPath):
+                if os.path.isdir(resPath+'/'+fItem):
+                    if fItem.lower()== itemA:                    
+                        iATemp=fItem
+                    if fItem.lower()== itemB: 
+                        iBTemp=fItem       
+        resPath=os.path.dirname(inpath).replace(iATemp,iBTemp)
+        #匹配文件名
+        resFileName=''
+        for fItem1 in os.listdir(resPath):
+            if os.path.isfile(resPath+'/'+fItem1):
+                if fItem1.lower().endswith('.mb') or fItem1.lower().endswith('.ma'):
+                    if fItem1.lower()==os.path.basename(inpath).lower().replace(itemA,itemB):
+                        resFileName=fItem1
+        resPath=resPath+'/'+resFileName
+    if os.path.exists(resPath):
+        if os.path.isfile(resPath):
+            return resPath
+        else:
+            return ''
+    else:
+        return ''
 
 if __name__=='__main__':
     J_resourceSetupTool_loadFile()
