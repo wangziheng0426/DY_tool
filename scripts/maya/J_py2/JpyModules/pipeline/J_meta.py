@@ -88,7 +88,8 @@ class J_meta():
     #重置
     def J_saveMeta(self):
         fileo=open(self.metaPath,'w')
-        fileo.write(json.dumps(self.metaInfo,encoding='utf-8',ensure_ascii=False,sort_keys=True,indent=4,separators=(",",":")))
+        fileo.write(json.dumps(self.metaInfo\
+            ,encoding='utf-8',ensure_ascii=True,sort_keys=True,indent=4,separators=(",",":")))
         fileo.close()
         print (u'保存jmeta信息到:'+self.metaPath)
     #读取
@@ -103,15 +104,3 @@ class J_meta():
 if __name__=='__main__':
     xx=J_meta(r'C:\Users\Administrator\Desktop\abcTest\scene',r'C:\Users\Administrator\Desktop\abcTest')
     print (xx.metaInfo)
-
-
-
-
-
-
-
-
-
-
-
-

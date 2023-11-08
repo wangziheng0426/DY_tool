@@ -205,10 +205,13 @@ class J_projectManeger_itemAttr():
             #区分基础属性,和自定义属性            
             attrName=kItem.replace('J_pm_subWin_','')
             if self.j_meta.metaInfo['baseInfo'].has_key(attrName):
-                self.j_meta.metaInfo['baseInfo'][attrName]=cmds.textFieldGrp(kItem,q=1,text=1).encode('utf-8')
+                self.j_meta.metaInfo['baseInfo'][attrName]=\
+                    cmds.textFieldGrp(kItem,q=1,text=1)
             else:
-                self.j_meta.metaInfo['userInfo'][attrName]=cmds.textFieldGrp(kItem,q=1,text=1).strip().encode('utf-8')
-        self.j_meta.metaInfo['baseInfo']['projectPath']=cmds.scrollField('J_projectManager_subWin_obj',q=1,text=1)
+                self.j_meta.metaInfo['userInfo'][attrName]=\
+                    cmds.textFieldGrp(kItem,q=1,text=1).strip()
+        self.j_meta.metaInfo['baseInfo']['projectPath']=\
+            cmds.scrollField('J_projectManager_subWin_obj',q=1,text=1)
         #保存信息文件
         self.j_meta.J_saveMeta()
         cmds.deleteUI('J_projectManeger_subWin',window=1)
@@ -238,10 +241,9 @@ class J_projectManeger_itemAttr():
             self.j_meta.metaInfo['userInfo'].pop(attrName)
 
             if cmds.textFieldGrp(arg[0],q=1,exists=1):
-                print arg[0]
+                cmds.deleteUI(arg[0],control=1)
                 cmds.evalDeferred('cmds.deleteUI(\"'+arg[0]+'\",control=1)')
 
- 
     #右键命令
     def J_projectManeger_subWin_copyToClipBoard(self,*arg):
         tx=cmds.textFieldGrp(arg[0],q=1,text=1)
