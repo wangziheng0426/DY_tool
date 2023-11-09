@@ -194,13 +194,13 @@ def J_resourceSetupTool_addItem(cacheAssetPath,cacheFolderName):
         cfxstate='error.png'
     #添加绑定
     cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(cacheFolderName+'$'+srfFile, cacheFolderName) )
-    #cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(cacheFolderName+'$'+srfFile, srfFile) )
+    cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(cacheFolderName+'$'+srfFile, srfFile) )
     cmds.treeView('J_loadCache_TreeView',edit=1, image=(cacheFolderName+'$'+srfFile, 1,srfstate) )
 
     #cfx动力学
     
     cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(cacheFolderName+'$'+cfxFile, cacheFolderName) )
-    #cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(cacheFolderName+'$'+cfxFile, cfxFile) )
+    cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(cacheFolderName+'$'+cfxFile, cfxFile) )
     cmds.treeView('J_loadCache_TreeView',edit=1, image=(cacheFolderName+'$'+cfxFile, 1,cfxstate) )
     
     #设置按钮显示状态
