@@ -302,7 +302,7 @@ def J_getChildNodes(currentNode,meshList):
     childNodes=cmds.listRelatives(currentNode,fullPath=True,children=True)
     if childNodes is not None:
         for item in childNodes:
-            if cmds.objectType( item, isType='mesh' ):
+            if cmds.objectType( item, isType='mesh' )  or  cmds.objectType( item, isType='nurbsCurve' ):
                 if cmds.getAttr((item+".intermediateObject"))==0:
                     meshList.append(item)
             if cmds.objectType( item, isType='transform' ):

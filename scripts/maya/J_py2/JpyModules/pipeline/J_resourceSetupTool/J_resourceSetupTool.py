@@ -22,7 +22,7 @@ def J_resourceSetupTool_init():
     cmds.treeView('J_loadCache_TreeView',edit=1, contextMenuCommand=\
                   JpyModules.pipeline.J_resourceSetupTool.J_projectManeger_popupMenuCommand )
                 #J_projectManeger_popupMenuCommand )
-    
+    cmds.button('J_rs_loadCache',e=1,c=J_resourceSetupTool_refAllFile)
     #右键菜单
     popm=cmds.popupMenu(parent='J_loadCache_TreeView')
     cmds.menuItem(parent=popm,label=u"添加资产文件" ,\
@@ -106,12 +106,16 @@ def J_resourceSetupTool_addItem(cacheAssetPath,cacheFolderName):
     cmds.treeView('J_loadCache_TreeView',edit=1, image=(cacheFolderName, 1,'precompExportChecked.png') )
     #assetName ：chr_yeChenZYZ@yeChenZYZRN 从中解析出角色名
     assetType=cacheFolderName.split('@')[0].split('_')[0]
-    assetName=cacheFolderName.split('@')[0].split('_')[-1]
+    
+    assetName='_'.join(cacheFolderName.split('@')[0].split('_')[1:])
+    print (u'分析目录得到'+assetType+u'类型资产文件:'+assetName)
     fileFoundState=0
     #新机制，先读取jcl文件，如果没有jcl或者jcl记录的文件不存在，则搜索资产目录
     abcJcl='.jcl'
+    print (u'搜索缓存日志文件')
     for fileItem in os.listdir(cacheAssetPath):
         if fileItem.endswith('.jcl'):
+            print (u'找到日志文件:'+fileItem)
             ofile=open(cacheAssetPath+'/'+fileItem,'r')
             abcJcl=json.load(ofile)
             ofile.close()
@@ -119,11 +123,17 @@ def J_resourceSetupTool_addItem(cacheAssetPath,cacheFolderName):
 
     #读取jcl中的字段，按照绑定目录查找
     srfFile=getCustomFilePath(abcJcl['0']['referenceFile'][0],'rig','srf')
+    #返回为空就是没找到，有可能是解算文件导出的，用rigsol尝试
+    if srfFile=='':
+        print (u'没找到rig资产，可能文件是rigsol导出')
+        srfFile=getCustomFilePath(abcJcl['0']['referenceFile'][0],'cfx_rigsol','srf')
+        print (u'搜索rigsol文件：'+srfFile)
+
     #设置帧率，时间线
     cmds.currentUnit(time=abcJcl["settings"]["frameRate"])
     cmds.playbackOptions(minTime=abcJcl["settings"]["frameRange"][0])
     cmds.playbackOptions(maxTime=abcJcl["settings"]["frameRange"][1])
-    #如果不对，则尝试替换工程目录
+    #如果找不到文件，则尝试替换工程目录
     if not os.path.exists(srfFile):
         srfFile=srfFile.replace(abcJcl['settings']['projectPath'],cmds.workspace(q=1,rd=1)[0:-1])
     # #如果还是找不到文件，则尝试替换后缀
@@ -132,11 +142,16 @@ def J_resourceSetupTool_addItem(cacheAssetPath,cacheFolderName):
     #         srfFile=srfFile[:-3]+'.ma'
     #     else:
     #         srfFile=srfFile[:-3]+'.mb'   
-
+        
     cfxFile=getCustomFilePath(abcJcl['0']['referenceFile'][0],'rig','cfx')
-    if not os.path.exists(srfFile):
-        cfxFile=cfxFile.replace(abcJcl['settings']['projectPath'],cmds.workspace(q=1,rd=1)[0:-1])
- 
+    #返回为空就是没找到，有可能是解算文件导出的，用rigsol尝试
+    if cfxFile=='':
+        print (u'没找到rig资产，可能文件是rigsol导出')
+        cfxFile=getCustomFilePath(abcJcl['0']['referenceFile'][0],'cfx_rigsol','cfx')
+        print (u'搜索rigsol文件：'+cfxFile)
+
+    if not os.path.exists(cfxFile):
+        cfxFile=cfxFile.replace(abcJcl['settings']['projectPath'],cmds.workspace(q=1,rd=1)[0:-1])  
     #如果根据jcl找不到文件，则从窗口设置的目录中搜索
     assetsPath=cmds.textField('J_resourceSetupTool_assetsPath',q=1,text=1)
 
@@ -186,12 +201,14 @@ def J_resourceSetupTool_addItem(cacheAssetPath,cacheFolderName):
     #如果没找到模型文件，则创建站位名称
     srfstate='nClothDisplayCurrent.png'
     cfxstate='hairConvertHairSystem.png'
-    if not os.path.exists(srfFile):
-        srfFile=cacheFolderName+"_srfFile"
+    if not os.path.exists(srfFile):        
         srfstate='error.png'
-    if not os.path.exists(cfxFile):
-        cfxFile=cacheFolderName+"_cfxFile"
+        print (u'未找到资产：'+srfFile)
+        srfFile=cacheFolderName+"_srfFile"
+    if not os.path.exists(cfxFile):        
         cfxstate='error.png'
+        print (u'未找到资产：'+cfxFile)
+        cfxFile=cacheFolderName+"_cfxFile"
     #添加绑定
     cmds.treeView('J_loadCache_TreeView',edit=1, addItem=(cacheFolderName+'$'+srfFile, cacheFolderName) )
     cmds.treeView('J_loadCache_TreeView',edit=1, displayLabel=(cacheFolderName+'$'+srfFile, srfFile) )
@@ -249,8 +266,11 @@ def J_resourceSetupTool_refFile(*args):
                     
                         if cmds.objExists(modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]):
                             nodeToMergeAbc=modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]
-
                             print (u'使用jcl文件中读取到的节点：'+nodeToMergeAbc)
+                        else:
+                            print ((modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1])+u'未找到')
+                    else:
+                        print (jclFile+u'没找到')
                     if cmds.objExists(nodeToMergeAbc):   
                         cmds.AbcImport(animAbcfile,mode= 'import' ,connect =nodeToMergeAbc)       
                         #commandToR='cmds.AbcImport("'+animAbcfile+'" ,mode="import" ,connect ="'+nodeToMergeAbc+'")'
@@ -271,7 +291,10 @@ def J_resourceSetupTool_refFile(*args):
                         if cmds.objExists(modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]):
                             nodeToMergeAbc=modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1]
                             print (u'使用jcl文件中读取到的节点：'+nodeToMergeAbc)
-                            
+                        else:
+                            print ((modelNameSpace+':'+jclstr['0']['selectedNode'][0].split(':')[-1])+u'未找到')
+                    else:
+                        print (jclFile+u'没找到')        
                     
                     if cmds.objExists(nodeToMergeAbc):     
                         cmds.AbcImport(simAbcFile,mode= 'import' ,connect =nodeToMergeAbc) 
@@ -302,12 +325,16 @@ def J_resourceSetupTool_refFile(*args):
                                     de.refresh("Full")
         else:
             print (u'未找到资产：'+item.split('@')[-1])
-        
+#一键加载
+def J_resourceSetupTool_refAllFile(*args):
+    for item in cmds.treeView('J_loadCache_TreeView',q=1,children=''):
+        if len(item.split('$'))==2:
+            J_resourceSetupTool_refFile(item)
 def getCustomFilePath(inpath,itemA,itemB):
     inpath=inpath.replace('\\','/')
-    #先搜索源目录
+    #先搜索源目录    
     resPath=os.path.dirname(inpath)
-
+    print (u'搜索目录：'+resPath)
     pathsplitNum= resPath.lower().find('/'+itemA.lower())
     #实际目录中的名字
     iATemp=''
@@ -323,16 +350,37 @@ def getCustomFilePath(inpath,itemA,itemB):
                     if fItem.lower()== itemB: 
                         iBTemp=fItem       
         resPath=os.path.dirname(inpath).replace(iATemp,iBTemp)
+        print(u'找到匹配的资产目录：'+resPath)
         #匹配文件名
-        resFileName=''
-        for fItem1 in os.listdir(resPath):
-            if os.path.isfile(resPath+'/'+fItem1):
-                if fItem1.lower().endswith('.mb') or fItem1.lower().endswith('.ma'):
-                    if fItem1.lower()==os.path.basename(inpath).lower().replace(itemA,itemB):
-                        resFileName=fItem1
-        resPath=resPath+'/'+resFileName
+    #如果是解算文件导出的缓存，会带有CFX_rigsol
+    if itemA=='cfx_rigsol':
+        characterPath=resPath[:resPath.lower().find('/cfx')]
+        for tfItem in os.listdir(characterPath):
+            if tfItem.lower()==itemB:
+                resPath=os.path.dirname(resPath)+'/'+tfItem
+                print (u'从解算目录解析到'+itemB+u'目录:'+resPath)
+
+    if os.path.exists(resPath):
+        #为了兼容cgt的目录结构，除了当前类型资产目录，再向下找一层目录
+        fileNotFound=True
+        for l0fItem in os.listdir(resPath):  
+            if l0fItem.lower().endswith('.mb') or l0fItem.lower().endswith('.ma'):
+                if l0fItem.lower()==os.path.basename(inpath).lower().replace(itemA,itemB):
+                    resPath=resPath+'/'+l0fItem
+                    fileNotFound=False
+                    break
+        if  fileNotFound:   
+            for l0fItem in os.listdir(resPath):
+                if os.path.isdir(resPath+'/'+l0fItem):
+                    for l1fItem in  os.listdir(resPath+'/'+l0fItem):
+                        if l1fItem.lower().endswith('.mb') or l1fItem.lower().endswith('.ma'):
+                            if l1fItem.lower()==os.path.basename(inpath).lower().replace(itemA,itemB):
+                                resPath=resPath+'/'+l0fItem+'/'+ l1fItem                            
+                                break
+
     if os.path.exists(resPath):
         if os.path.isfile(resPath):
+            print (u"找到资产："+resPath)
             return resPath
         else:
             return ''
