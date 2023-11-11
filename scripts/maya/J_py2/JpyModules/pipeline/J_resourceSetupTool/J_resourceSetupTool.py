@@ -298,7 +298,7 @@ def J_resourceSetupTool_refFile(*args):
                     
                     if cmds.objExists(nodeToMergeAbc):     
                         cmds.AbcImport(simAbcFile,mode= 'import' ,connect =nodeToMergeAbc) 
-                        print (u'使用abc：'+simAbcFile+u'merge到'+nodeToMergeAbc)  
+                        print (u'使用abc：'+simAbcFile+u' merge到'+nodeToMergeAbc)  
                         #commandToR='cmds.AbcImport("'+simAbcFile+'" ,mode="import" ,connect ="'+nodeToMergeAbc+'",createIfNotFound=1)'
                         #cmds.evalDeferred(commandToR)
                     else:
@@ -312,17 +312,21 @@ def J_resourceSetupTool_refFile(*args):
                         print ("Collection:" + palette)
                         descriptions = xg.descriptions(palette)
                         for description in descriptions:  
+                            print (u'处理当前xgen描述：'+description)
                             #先关闭所有缓存，避免xgen报错
                             xg.setAttr('useCache','false',palette,description,'SplinePrimitive')
                             xg.setAttr('liveMode','false',palette,description,'SplinePrimitive')                              
                             #abc名称匹配xgen描述，相符则加载缓存
                             for fItem1 in os.listdir(abcPath):
-                                if description.find(fItem1.replace('_OutputCurves.abc',''))>-1:
-                                    print (description+u":加载abc->"+fItem1)
-                                    xg.setAttr('useCache','true',palette,description,'SplinePrimitive')
-                                    xg.setAttr('cacheFileName',str(abcPath+"/"+fItem1) ,str(palette),str(description),'SplinePrimitive')
-                                    de = xgg.DescriptionEditor
-                                    de.refresh("Full")
+                                if fItem1.lower().endswith('.abc'):
+                                    print (fItem1.lower().replace('_outputcurves.abc',''))
+                                    abcKeyWord=fItem1.lower().replace('_outputcurves.abc','').split('@')[-1]
+                                    if description.lower().find(abcKeyWord)>-1:
+                                        print (description+u":加载abc->"+fItem1)
+                                        xg.setAttr('useCache','true',palette,description,'SplinePrimitive')
+                                        xg.setAttr('cacheFileName',str(abcPath+"/"+fItem1) ,str(palette),str(description),'SplinePrimitive')
+                                        de = xgg.DescriptionEditor
+                                        de.refresh("Full")
         else:
             print (u'未找到资产：'+item.split('@')[-1])
 #一键加载
@@ -355,10 +359,11 @@ def getCustomFilePath(inpath,itemA,itemB):
     #如果是解算文件导出的缓存，会带有CFX_rigsol
     if itemA=='cfx_rigsol':
         characterPath=resPath[:resPath.lower().find('/cfx')]
-        for tfItem in os.listdir(characterPath):
-            if tfItem.lower()==itemB:
-                resPath=os.path.dirname(resPath)+'/'+tfItem
-                print (u'从解算目录解析到'+itemB+u'目录:'+resPath)
+        if os.path.exists(characterPath):
+            for tfItem in os.listdir(characterPath):
+                if tfItem.lower()==itemB:
+                    resPath=os.path.dirname(resPath)+'/'+tfItem
+                    print (u'从解算目录解析到'+itemB+u'目录:'+resPath)
 
     if os.path.exists(resPath):
         #为了兼容cgt的目录结构，除了当前类型资产目录，再向下找一层目录

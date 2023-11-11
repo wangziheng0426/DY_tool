@@ -37,6 +37,8 @@ def J_CFXWorkFlow_outAbcGeo():
                     assetName=assetName[:-4]
                 if assetName.lower().endswith('_cfx_rigsol') :
                     assetName=assetName[:-11]
+                if assetName.lower().endswith('_rigsol') :
+                    assetName=assetName[:-7]
                 print (u'分析得到资产名：'+assetName)
                 #找工程目录下的jmeta
                 projName=os.path.splitext(os.path.basename(cmds.workspace(q=1,rd=1)[0:-1]))[0]
