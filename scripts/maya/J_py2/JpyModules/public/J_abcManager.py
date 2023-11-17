@@ -78,7 +78,9 @@ def J_exportAbc(mode=1,exportMat=True,nodesToExport=[],exportAttr=[],cacheFileNa
         if(len(exportAttr)>0):            
             for attrItem in exportAttr:
                 exportString+=' -attr '+attrItem+' '        
-        exportString+=' -uvWrite -writeFaceSets -worldSpace -dataFormat ogawa '    
+        #exportString+=' -uvWrite -writeFaceSets -worldSpace -dataFormat ogawa '    
+        #不输出面集，避免材质被替换
+        exportString+=' -uvWrite -worldSpace -dataFormat ogawa '    
         for nitem in nodesToExport:
             exportString+=' -root '+nitem +" "
         exportString+=' -file '+j_abcCachePath+'/'+cacheFileName+'.abc"'
